@@ -145,7 +145,7 @@ The following is the nearest neighbor features for the intercept embeddings of "
 The following is the regression outputs for China and the U.S.:
 
 | **country**                      | **normed_estimate** | **std_error** | **lower_ci** | **upper_ci** | **p_value** |
-|:---------------------------------|:--------------------|:--------------|:-------------|:-------------|:------------|
+|:--------------|:-----------|:-----------|:-----------|:-----------|:-----------|
 | country_China                    | 1.697853            | 0.1479866     | 1.407774     | 1.987932     | 0           |
 | country_United States Of America | 1.430671            | 0.1627434     | 1.111666     | 1.749675     | 0           |
 
@@ -207,7 +207,11 @@ The following table displays the ratios of cosine similarities based on embeddin
 | **12** | governance    | 0.8988757 |
 | **13** | humanrights   | 0.8456848 |
 
+work in progress: I am working on regressing embeddings over some continuous variables such as the GDP per capita of countries.
+
 ### Discussions
+
+under construction...
 
 ### References
 

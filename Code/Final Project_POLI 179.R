@@ -98,7 +98,11 @@ find_nns(local_glove_ALL['ruleoflaw', ], pre_trained = local_glove_ALL, N = 5, c
 
 # compute transform (A matrix)
 local_transform_ALL <- compute_transform(x = toks_fcm_ALLspeeches, pre_trained = local_glove_ALL, weighting = 'log')
-#saveRDS(local_transform_ALL, "local_transform_ALL.rds")
+
+#-----------------------------------------------
+#load the saved models
+local_glove_ALL <- readRDS("local_glove_ALL.rds")
+local_transform_ALL <- readRDS("local_transform_ALL.rds")
 
 #load the models
 #local_glove_ALL <- readRDS("local_glove_ALL.rds")
@@ -219,3 +223,19 @@ nns_ratio_regression_China_US <- as.data.frame(nns_ratio(x = matrix_China_US_wv,
 
 # Display top differences
 print(top_diff_features)
+
+#regress the embeddings over GDP per capita
+GDPpercap_model <- conText(formula = "ruleoflaw" ~ GDP_PerCap,
+                              data = toks_merged_countries_features,
+                              pre_trained = local_glove_ALL,
+                              transform = TRUE, transform_matrix = local_transform_ALL,
+                              jackknife = TRUE, confidence_level = 0.95,
+                              permute = TRUE, num_permutations = 100,
+                              window = 6, case_insensitive = TRUE,
+                              verbose = FALSE)
+# look at percentiles of GDPpercap
+percentiles_GDPpercap <- quantile(docvars(corpus_merged_countries)$GDP_PerCap, probs = seq(0.05,0.95,0.05))
+percentile_wvs_GDPpercap <- lapply(percentiles_GDPpercap, function(i) GDPpercap_model["(Intercept)",] + i*GDPpercap_model["GDP_PerCap",]) %>% do.call(rbind,.)
+percentile_sim_GDPpercap <- cos_sim(x = percentile_wvs_GDPpercap, pre_trained = local_glove_ALL, features = c("support", "illegal", "stability", "humanrights", "justice", "security", "accountability"), as_list = TRUE)
+# nearest neighbors
+nearest_neighbors_gdpPerCap <- nns(rbind(percentile_wvs_GDPpercap), N = 15, pre_trained = local_glove_ALL, candidates = GDPpercap_model@features)
