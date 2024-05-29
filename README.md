@@ -38,7 +38,7 @@ With the locally trained GloVe embeddings, I found nearest neighbor words for th
 
 Using the conText regression model in the "conText" package, I regressed the embeddings of "ruleoflaw" over country. Before doing so, I removed the speeches by NGOs from the dataset and only included the 7103 speeches by countries (primarily because the full dataset was so big that the computer could not compute the regression). In this case, since there are multiple countries in the country variable, the model made them into dummy variables. This means that, for example, the variable "country_China" takes the value of 1 when the instance of "ruleoflaw" is from a speech by China and takes the value of 0 otherwise.
 
-After constructing the regression, I obtained the embeddings for each country estimated by the regression
+After constructing the regression, I obtained the embeddings for each country estimated by the regression and found nearest neighbor features.
 
 ### Results
 
