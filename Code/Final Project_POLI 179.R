@@ -104,9 +104,6 @@ local_transform_ALL <- compute_transform(x = toks_fcm_ALLspeeches, pre_trained =
 local_glove_ALL <- readRDS("local_glove_ALL.rds")
 local_transform_ALL <- readRDS("local_transform_ALL.rds")
 
-#load the models
-#local_glove_ALL <- readRDS("local_glove_ALL.rds")
-#local_transform_ALL <- readRDS("local_transform_ALL.rds")
 
 #create document-embedding matrix using our locally trained GloVe embeddings and transformation matrix
 RofL_dem_local_glove_ALL <- dem(x = ruleoflaw_dfm, pre_trained = local_glove_ALL, transform = TRUE, transform_matrix = local_transform_ALL, verbose = TRUE)

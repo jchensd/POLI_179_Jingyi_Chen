@@ -1,4 +1,4 @@
-## Comparative Analysis of Countries' Perspectives on 'Rule of Law' in the U.N. Security Council Debates Leveraging the conText Embedding Regression
+## Decoding Country Perspectives on "Rule of Law" in U.N. Security Council Debates: A Comparative Analysis Leveraging conText Embedding Regression
 
 ### Group
 
@@ -6,7 +6,7 @@
 
 ### Introduction
 
-In this project, I applied the conText Embedding Regression method introduced by Rodriguez et al. (2023) to compare the contextual meanings of "rule of law" in the United Nations Security Council debates across different countries. The "conText" package developed by Rodriguez et al. (2023) was used to conduct analysis in R.
+In this project, I applied the à la carte (ALC) Embedding (Khodak et al., 2018) and the conText Embedding Regression (Rodriguez et al., 2023) to compare the contextual meanings of "rule of law" in the United Nations Security Council debates across different countries. The "conText" package developed by Rodriguez et al. (2023) was used to conduct analysis in R.
 
 ### Data
 
@@ -24,7 +24,7 @@ Then, I converted the column of texts into a corpus and tokens. I also conducted
 
 ### Methods
 
-#### 1. à la carte (ALC) Embeddings
+#### 1. à la carte (ALC) Embedding
 
 In order to examine the contextual meanings of "ruleoflaw" by analyzing the words surrounding this targeted term, I collected 6 words before and after every instance in which "ruleoflaw" was mentioned among the speeches as well as the metadata associated with the instance. A document feature matrix was built, where thr rows (documents) consist of 6 words before and after 13837 instances of "ruleoflaw".
 
@@ -32,7 +32,7 @@ Then, I estimated GloVe embeddings from the 8435 filtered U.N. Security Council 
 
 The ALC embeddings method estimates the embeddings of the targeted word in a specific context by taking the average of the embeddings of words surrounding this word (e.g. 6 words before and after the targeted word) (Khodak et al., 2018). I obtained the embeddings of the words surrounding the 13837 instances of "ruleoflaw" from the GloVe model estimated previously and applied the transform matrix to construct a document-embedding matrix which contains the embeddings of words surrounding every instance of "ruleoflaw". Then, I took the column average of these embeddings to get the context-specific embeddings for "ruleoflaw".
 
-With the locally trained GloVe embeddings, I found nearest neighbor words for the context-specific "ruleoflaw" embeddings. cosine similarity between each country's embedding and a specific set of featurescosine similarity between each country's embedding and a specific set of featurescosine similarity between each country's embedding and a specific set of featurescosine similarity between each country's embedding and a specific set of featurescosine similarity between each country's embedding and a specific set of featurescosine similarity between each country's embedding and a specific set of features.
+With the locally trained GloVe embeddings, I found nearest neighbor words for the context-specific "ruleoflaw" embeddings. I also computed cosine similarities between each country's embedding and a specific set of features and found words that distinguish two countries the most.
 
 #### 2. conText Embedding Regression
 
@@ -102,7 +102,7 @@ The nearest neighbor features for the specific context of China and the U.S.:
 | United States Of America | ensuring      | 14       | 0.6768293 |
 | United States Of America | stability     | 15       | 0.6765675 |
 
-The following table displays the ratios of cosine similarities. First, it computed the cosine similarities between the embeddings of "ruleoflaw" and the features for China's and the U.S.'s contexts. Then, it takes the ratio of cosine similarities for the two countries. This means that that the features with values larger than 1 are more associated with "ruleoflaw" in China's context compared to the U.S.'s context; features with values smaller than 1 are more associated with "ruleoflaw" in the U.S.'s context compared to China's context.
+The following table displays the ratios of cosine similarities (Rodríguez, 2023). First, it computed the cosine similarities between the embeddings of "ruleoflaw" and the features for China's and the U.S.'s contexts. Then, it takes the ratio of cosine similarities for the two countries. This means that that the features with values larger than 1 are more associated with "ruleoflaw" in China's context compared to the U.S.'s context; features with values smaller than 1 are more associated with "ruleoflaw" in the U.S.'s context compared to China's context.
 
 |        | **feature**   | **value** |
 |:-------|:--------------|:----------|
@@ -145,7 +145,7 @@ The following is the nearest neighbor features for the intercept embeddings of "
 The following is the regression outputs for China and the U.S.:
 
 | **country**                      | **normed_estimate** | **std_error** | **lower_ci** | **upper_ci** | **p_value** |
-|:--------------|:-----------|:-----------|:-----------|:-----------|:-----------|
+|:-----------|:-----------|:-----------|:-----------|:-----------|:-----------|
 | country_China                    | 1.697853            | 0.1479866     | 1.407774     | 1.987932     | 0           |
 | country_United States Of America | 1.430671            | 0.1627434     | 1.111666     | 1.749675     | 0           |
 
@@ -213,11 +213,19 @@ work in progress: I am working on regressing embeddings over some continuous var
 
 under construction...
 
+regression:
+
+key global event - before and after a certain date/year
+
+democracy index - <https://ourworldindata.org/grapher/democracy-index-eiu?tab=table#explore-the-data>
+
 ### References
 
 Khodak, M., Saunshi, N., Liang, Y., Ma, T., Stewart, B., & Arora, S. (2018). A la carte embedding: Cheap but effective induction of semantic feature vectors. *arXiv preprint arXiv:1805.05388*.
 
 Pennington, J., Socher, R., & Manning, C. D. (2014). Glove: Global vectors for word representation. In Proceedings of the 2014 conference on empirical methods in natural language processing (EMNLP) (pp. 1532-1543).
+
+Rodríguez, P. L. (2023, August 4). *conText - Quick Start Guide*. GitHub. <https://github.com/prodriguezsosa/conText/blob/master/vignettes/quickstart.md>
 
 Rodriguez, P. L., Spirling, A., & Stewart, B. M. (2023). Embedding Regression: Models for Context-Specific Description and Inference. American Political Science Review, 117(4), 1255–1274. <doi:10.1017/S0003055422001228>
 
