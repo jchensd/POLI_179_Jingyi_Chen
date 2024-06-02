@@ -145,7 +145,7 @@ The following is the nearest neighbor features for the intercept embeddings of "
 The following is the regression outputs for China and the U.S.:
 
 | **country**                      | **normed_estimate** | **std_error** | **lower_ci** | **upper_ci** | **p_value** |
-|:-----------|:-----------|:-----------|:-----------|:-----------|:-----------|
+|:---------------------------------|:--------------------|:--------------|:-------------|:-------------|:------------|
 | country_China                    | 1.697853            | 0.1479866     | 1.407774     | 1.987932     | 0           |
 | country_United States Of America | 1.430671            | 0.1627434     | 1.111666     | 1.749675     | 0           |
 

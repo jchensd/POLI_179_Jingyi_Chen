@@ -16,13 +16,19 @@ library(stringr)
 #re-label the column "filename" as "doc_id".
 meta_speeches <- meta_speeches %>%
   rename("doc_id" = "filename")
+
 #merge the text dataset and the metadata dataset.
 merged_ALLspeeches <- merge(raw_docs, meta_speeches, by = "doc_id")
 #make "rule of law" into one word
+merged_ALLspeeches$text <- gsub("\n", " ", merged_ALLspeeches$text, ignore.case = TRUE)
+merged_ALLspeeches$text <- gsub("  ", " ", merged_ALLspeeches$text, ignore.case = TRUE)
 merged_ALLspeeches$text <- gsub("rule of law", "ruleoflaw", merged_ALLspeeches$text, ignore.case = TRUE)
 merged_ALLspeeches$text <- gsub("rule-of-law", "ruleoflaw", merged_ALLspeeches$text, ignore.case = TRUE)
+merged_ALLspeeches$text <- gsub("rule oflaw", "ruleoflaw", merged_ALLspeeches$text, ignore.case = TRUE)
+merged_ALLspeeches$text <- gsub("ruleof law", "ruleoflaw", merged_ALLspeeches$text, ignore.case = TRUE)
 merged_ALLspeeches$text <- gsub("human rights", "humanrights", merged_ALLspeeches$text, ignore.case = TRUE)
-
+merged_ALLspeeches$text <- gsub("Security Council", "SecurityCouncil", merged_ALLspeeches$text, ignore.case = TRUE)
+merged_ALLspeeches$text <- gsub("United Nations", "UnitedNations", merged_ALLspeeches$text, ignore.case = TRUE)
 #create a new variable "contain_ruleoflaw" that takes the value of 1 when the speech mention ruleoflaw and 0 when it doesn't.
 merged_ALLspeeches <- merged_ALLspeeches %>%
   mutate(contain_ruleoflaw = ifelse(grepl("ruleoflaw", text), 1, 0))
@@ -42,6 +48,7 @@ ggplot(RofL_proportion_by_year, aes(x = factor(year), y = mention_RofL_proportio
 #filter the dataset to include only those texts that contain "ruleoflaw"
 filtered_ALLspeeches <- merged_ALLspeeches %>%
   filter(str_detect(text, regex("ruleoflaw", ignore_case = TRUE)))
+saveRDS(filtered_ALLspeeches, file = "filtered_ALLspeeches.rds")
 
 #---------------------------------
 # Text pre-processing
@@ -50,8 +57,13 @@ filtered_ALLspeeches <- merged_ALLspeeches %>%
 library(conText)
 library(quanteda)
 library(tidyverse)
+
 #create a corpus of texts.
 corpus_ALLspeeches <- corpus(filtered_ALLspeeches, text_field = "text")
+# Adding 'doc_id' as a separate document variable
+docvars(corpus_ALLspeeches, "doc_id") <- filtered_ALLspeeches$doc_id
+# Verify if 'doc_id' is present in the document variables
+docvars(corpus_ALLspeeches)
 
 #tokenize corpus removing unnecessary (i.e. semantically uninformative) elements
 toks_ALLspeeches <- tokens(corpus_ALLspeeches, remove_punct=T, remove_symbols=T, remove_numbers=T, remove_separators=T)
@@ -67,6 +79,7 @@ features_ALLspeeches <- dfm(toks_ALLspeeches, verbose = FALSE) %>%
 toks_ALLspeeches <- tokens_select(toks_ALLspeeches, features_ALLspeeches, padding = TRUE)
 #build a tokenized corpus of contexts surrounding the target term "ruleoflaw"
 ruleoflaw_toks <- tokens_context(x = toks_ALLspeeches, pattern = "ruleoflaw", window = 6L)
+
 #build document-feature matrix
 ruleoflaw_dfm <- dfm(ruleoflaw_toks)
 
@@ -91,18 +104,18 @@ wv_main_ALL <- glove_ALLSpeeches$fit_transform(toks_fcm_ALLspeeches, n_iter = 50
 wv_context_ALL <- glove_ALLSpeeches$components
 local_glove_ALL <- wv_main_ALL + t(wv_context_ALL) # word vectors
 #Save the trained glove embeddings to RDS
-#saveRDS(local_glove_ALL, "local_glove_ALL.rds")
+saveRDS(local_glove_ALL, "local_glove_ALL.rds")
 
 # qualitative check
 find_nns(local_glove_ALL['ruleoflaw', ], pre_trained = local_glove_ALL, N = 5, candidates = features_ALLspeeches)
 
 # compute transform (A matrix)
-local_transform_ALL <- compute_transform(x = toks_fcm_ALLspeeches, pre_trained = local_glove_ALL, weighting = 'log')
-
+local_transform_ALL <- compute_transform(x = toks_fcm_ALLspeeches, pre_trained = local_glove_ALL, weighting = "log")
+saveRDS(local_transform_ALL, "local_transform_ALL.rds")
 #-----------------------------------------------
 #load the saved models
-local_glove_ALL <- readRDS("local_glove_ALL.rds")
-local_transform_ALL <- readRDS("local_transform_ALL.rds")
+#local_glove_ALL <- readRDS("local_glove_ALL.rds")
+#local_transform_ALL <- readRDS("local_transform_ALL.rds")
 
 
 #create document-embedding matrix using our locally trained GloVe embeddings and transformation matrix
@@ -143,8 +156,27 @@ ruleoflaw_ncs_local_ALL <- ncs(x = ruleoflaw_wv_country_local_ALL, contexts_dem 
 
 # nearest contexts to USA and China embedding of target term
 # note, these may included contexts originating from Chinese and U.S. speakers
-ruleoflaw_ncs_local_ALL[["United States Of America"]]$context
-ruleoflaw_ncs_local_ALL[["China"]]
+ruleoflaw_ncs_local_ALL[["United States Of America"]]
+ruleoflaw_ncs_local_ALL[["China"]]$context
+# Convert each list of tokens into a single space-separated string and create a dataframe
+
+context_df <- data.frame(context = sapply(ruleoflaw_toks, function(tokens) {
+  paste(tokens, collapse = " ")
+}))
+
+#Extract the doc_id values into a vector. Add this vector as a new column to context_df
+context_df$doc_id <- ruleoflaw_dfm@docvars[["doc_id"]]
+
+for (tokens in ruleoflaw_ncs_local_ALL[["China"]]$context){
+  doc_id_context = context_df$doc_id[context_df$context == tokens]
+  print(doc_id_context)
+  print(filtered_ALLspeeches$country[filtered_ALLspeeches$doc_id == doc_id_context])
+  print(context_df$context[context_df$context == tokens])
+  print(filtered_ALLspeeches$text[filtered_ALLspeeches$doc_id == doc_id_context])
+}
+
+
+
 
 #---------------------------------
 # conText Embedding Regression
@@ -196,7 +228,81 @@ nns_regression_China <- as.data.frame(nns(rbind(China_wv), N = 15, pre_trained =
 US_wv <- all_countries_model['(Intercept)',] + all_countries_model['country_United States Of America',]
 nns_regression_US <- as.data.frame(nns(rbind(US_wv), N = 15, pre_trained = local_glove_ALL, candidates = all_countries_model@features))
 
+
+merged_countries_democracy_index <- readRDS("merged_countries_democracy_index.rds")
+#create a new variable "contain_ruleoflaw" that takes the value of 1 when the speech mention ruleoflaw and 0 when it doesn't.
+merged_countries_democracy_index <- merged_countries_democracy_index %>%
+  mutate(China = ifelse(grepl("China", country), 1, 0))
+#Text pre-processing------------------------------------------------------------
+#-------------------------------------------------------------------------------
+#create a corpus of texts.
+corpus_merged_countries_dem_index <- corpus(merged_countries_democracy_index, text_field = "text")
+
+#tokenize corpus removing unnecessary (i.e. semantically uninformative) elements
+toks_merged_countries_dem_index <- tokens(corpus_merged_countries_dem_index, remove_punct=T, remove_symbols=T, remove_numbers=T, remove_separators=T)
+toks_merged_countries_dem_index <- tokens_tolower(toks_merged_countries_dem_index)
+#clean out stopwords and words with 2 or fewer characters
+toks_merged_countries_dem_index <- tokens_select(toks_merged_countries_dem_index, pattern = stopwords("en"), selection = "remove", min_nchar=3)
+toks_merged_countries_dem_index_stemmed <- tokens_wordstem(toks_merged_countries_dem_index)
+#only use features that appear at least 5 times in the corpus
+features_merged_countries_dem_index <- dfm(toks_merged_countries_dem_index, verbose = FALSE) %>% 
+  dfm_trim(min_termfreq = 5) %>% featnames()
+#dfm_merged_countries_dem_index <- dfm(toks_merged_countries_dem_index_stemmed) %>% 
+#  dfm_trim(min_termfreq = 5)
+
+# leave the pads so that non-adjacent words will not become adjacent
+toks_merged_countries_features_dem_index <- tokens_select(toks_merged_countries_dem_index, features_merged_countries_dem_index, padding = TRUE)
+
+#regress the embeddings over democracy index
+democracy_index_model <- conText(formula = "ruleoflaw" ~ Democracy.score,
+                           data = toks_merged_countries_features_dem_index,
+                           pre_trained = local_glove_ALL,
+                           transform = TRUE, transform_matrix = local_transform_ALL,
+                           jackknife = TRUE, confidence_level = 0.95,
+                           permute = TRUE, num_permutations = 100,
+                           window = 6, case_insensitive = TRUE,
+                           verbose = FALSE)
+# look at percentiles of democracy index
+percentiles_dem_index <- quantile(docvars(corpus_merged_countries_dem_index)$Democracy.score, probs = seq(0.05,0.95,0.05))
+percentile_wvs_dem_index <- lapply(percentiles_dem_index, function(i) democracy_index_model["(Intercept)",] + i*democracy_index_model["Democracy.score",]) %>% do.call(rbind,.) 
+percentile_sim_dem_index <- cos_sim(x = percentile_wvs_dem_index, pre_trained = local_glove_ALL, features = c("support", "illegal", "stability", "humanrights", "justice", "security", "accountability"), as_list = TRUE)
+# nearest neighbors
+nearest_neighbors_dem_index <- nns(rbind(percentile_wvs_dem_index), N = 20, pre_trained = local_glove_ALL, candidates = democracy_index_model@features)
+
+#non-binary covariates are automatically "dummified"
+rownames(democracy_index_model)
+regression_info_democracy_index_model <- data.frame(country = democracy_index_model@normed_coefficients[["coefficient"]], normed_estimate = democracy_index_model@normed_coefficients[["normed.estimate"]], std_error = democracy_index_model@normed_coefficients[["std.error"]], lower_ci = democracy_index_model@normed_coefficients[["lower.ci"]], upper_ci = democracy_index_model@normed_coefficients[["upper.ci"]], p_value = democracy_index_model@normed_coefficients[["p.value"]])
+regression_info_China <- as.data.frame(regression_info_democracy_index_model[regression_info_democracy_index_model$country == "country_China", ])
+regression_info_US <- as.data.frame(regression_info_all_countries[regression_info_all_countries$country == "country_United States Of America", ])
+# D-dimensional beta coefficients
+# the intercept in this case is the ALC embedding for?
+# beta coefficients can be combined to get each group's ALC embedding
+intercept_wv <- democracy_index_model['(Intercept)',] 
+nns_regression_intercept <- as.data.frame(nns(rbind(intercept_wv), N = 15, pre_trained = local_glove_ALL, candidates = democracy_index_model@features))
+China_wv <- democracy_index_model['(Intercept)',] + democracy_index_model['China',] #China
+# nearest neighbors
+nns_regression_China <- as.data.frame(nns(rbind(China_wv), N = 15, pre_trained = local_glove_ALL, candidates = all_countries_model@features))
+# Compute embeddings for countries 
+US_wv <- all_countries_model['(Intercept)',] + all_countries_model['country_United States Of America',]
+nns_regression_US <- as.data.frame(nns(rbind(US_wv), N = 15, pre_trained = local_glove_ALL, candidates = all_countries_model@features))
+
+
 #I am still exploring the following...
+#STM 
+library(stm)
+#convert the trimmed dfm into the format that can be used to run the STM model.
+dfm_merged_countries_dem_index <- convert(dfm_merged_countries_dem_index, to = "stm")
+#run the STM model.
+model.stm_RofL <- stm(dfm_merged_countries_dem_index$documents, dfm_merged_countries_dem_index$vocab, K = 10, prevalence = ~ s(year) + country + s(Democracy.score),
+                    data = dfm_merged_countries_dem_index$meta)
+#Find most likely words in each topic
+labelTopics(model.stm_RofL)
+#Estimate relationship between democracy score and topics
+model.stm.ee_RofL <- estimateEffect(1:10 ~ s(year) + country, model.stm_RofL, meta = dfm_merged_countries_dem_index$meta)
+
+plot(model.stm.ee_RofL, "country", method="difference", cov.value1="United States Of America", cov.value2="Russian Federation")
+plot(model.stm.ee_RofL, "Democracy.score", method="continuous", topics=c(10))
+
 #---------cos similarity-----------
 # Compute cosine similarity between China and the United States embeddings
 cosine_similarity <- function(vec1, vec2) {
@@ -236,3 +342,4 @@ percentile_wvs_GDPpercap <- lapply(percentiles_GDPpercap, function(i) GDPpercap_
 percentile_sim_GDPpercap <- cos_sim(x = percentile_wvs_GDPpercap, pre_trained = local_glove_ALL, features = c("support", "illegal", "stability", "humanrights", "justice", "security", "accountability"), as_list = TRUE)
 # nearest neighbors
 nearest_neighbors_gdpPerCap <- nns(rbind(percentile_wvs_GDPpercap), N = 15, pre_trained = local_glove_ALL, candidates = GDPpercap_model@features)
+
