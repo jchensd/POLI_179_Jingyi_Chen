@@ -16,7 +16,7 @@ The main data analyzed in this project is the United Nations Security Council de
 
 #### Data Preprocessing
 
-The original dataset from Schoenfeld et al. (2019) consists of two files: "docs_meta.RData" and "docs.RData", which were merged using the shared document IDs. Because the primary objective of this project is to examine how the phrase "rule of law" is used by different countries in their U.N. Security Council speeches, it was made into one term, i.e. "ruleoflaw", which is the targeted/focal term in the analysis. Also, because I am also interested in whether some countries are more likely to associated "human rights" with "ruleoflaw", the former phrase is also made into one term, i.e. "humanrights". The whole dataset of speeches were filtered into only those that mentioned "ruleoflaw". In the meantime, I also compute the proportion of speeches that mentioned "ruleoflaw" among all speeches in a given year year and the below histogram illustrates the results:
+The original dataset from Schoenfeld et al. (2019) consists of two files: "docs_meta.RData" and "docs.RData", which were merged using the shared document IDs. Because the primary objective of this project is to examine how the phrase "rule of law" is used by different countries in their U.N. Security Council speeches, it was made into one term, i.e. "ruleoflaw", which is the targeted/focal term in the analysis. Also, because I am also interested in whether some countries are more likely to associated "human rights" with "ruleoflaw", the former phrase is also made into one term, i.e. "humanrights". The whole dataset of speeches were filtered into only those that mentioned "ruleoflaw". In the meantime, I also compute the proportion of speeches that mentioned "ruleoflaw" among all speeches in a given year year and the below histogram illustrates the results. I conducted the operations described in this paragraph in
 
 ![Image 1: Proportions of U.N. Security Council Speeches Mentioning 'rule of law' by Year](https://github.com/jchensd/POLI_179_Jingyi_Chen/assets/169096479/2e72ba6c-7540-4a3a-b6a6-af5afb57365f)
 
@@ -46,79 +46,67 @@ After constructing the regression, I obtained the embeddings for each country es
 
 The following is the nearest neighbors for the overall "ruleoflaw" embeddings from the whole corpus (i.e. 8435 U.N. Security Council speeches that mentioned "ruleoflaw"):
 
-| feature       | rank | value     |
-|:--------------|:-----|:----------|
-| ruleoflaw     | 1    | 0.9355679 |
-| strengthening | 2    | 0.8397012 |
-| respect       | 3    | 0.7969343 |
-| essential     | 4    | 0.7895955 |
-| governance    | 5    | 0.7894433 |
-| institutions  | 6    | 0.7815149 |
-| humanrights   | 7    | 0.7773125 |
-| promoting     | 8    | 0.7600160 |
-| ensuring      | 9    | 0.7440357 |
-| justice       | 10   | 0.7420294 |
-| fundamental   | 11   | 0.7406022 |
-| crucial       | 12   | 0.7170282 |
-| strengthen    | 13   | 0.7144370 |
-| democracy     | 14   | 0.7141022 |
-| promote       | 15   | 0.7099270 |
+| **feature**   | **rank** | **value** |
+|:--------------|:---------|:----------|
+| ruleoflaw     | 1        | 0.9131961 |
+| strengthening | 2        | 0.7963212 |
+| respect       | 3        | 0.7717734 |
+| institutions  | 4        | 0.7662984 |
+| governance    | 5        | 0.7577117 |
+| humanrights   | 6        | 0.7551350 |
+| essential     | 7        | 0.7542815 |
+| justice       | 8        | 0.7154632 |
+| ensuring      | 9        | 0.7127769 |
+| promoting     | 10       | 0.7118825 |
 
 The nearest neighbor features for the specific context of China and the U.S.:
 
-| **target** | **feature**    | **rank** | **value** |
-|:-----------|:---------------|:---------|:----------|
-| China      | ruleoflaw      | 1        | 0.8319575 |
-| China      | stability      | 2        | 0.7922305 |
-| China      | strengthening  | 3        | 0.7720376 |
-| China      | essential      | 4        | 0.7560088 |
-| China      | development    | 5        | 0.7473085 |
-| China      | institutions   | 6        | 0.7404832 |
-| China      | strengthen     | 7        | 0.7293786 |
-| China      | order          | 8        | 0.7277251 |
-| China      | promote        | 9        | 0.7177649 |
-| China      | respect        | 10       | 0.7080535 |
-| China      | promoting      | 11       | 0.7021248 |
-| China      | efforts        | 12       | 0.6981863 |
-| China      | believe        | 13       | 0.6891291 |
-| China      | economic       | 14       | 0.6867516 |
-| China      | reconciliation | 15       | 0.6819550 |
+| **feature**   | **rank** | **value** |
+|:--------------|:---------|:----------|
+| ruleoflaw     | 1        | 0.7990605 |
+| stability     | 2        | 0.7661675 |
+| development   | 3        | 0.7271184 |
+| strengthening | 4        | 0.7197165 |
+| institutions  | 5        | 0.7150364 |
+| essential     | 6        | 0.7013694 |
+| promote       | 7        | 0.6952098 |
+| security      | 8        | 0.6859930 |
+| efforts       | 9        | 0.6810040 |
+| strengthen    | 10       | 0.6791745 |
 
-| **target**               | **feature**   | **rank** | **value** |
-|:-------------------------|:--------------|:---------|:----------|
-| United States Of America | ruleoflaw     | 1        | 0.8884702 |
-| United States Of America | institutions  | 2        | 0.8056607 |
-| United States Of America | strengthening | 3        | 0.7781048 |
-| United States Of America | governance    | 4        | 0.7569486 |
-| United States Of America | strengthen    | 5        | 0.7556756 |
-| United States Of America | essential     | 6        | 0.7404571 |
-| United States Of America | respect       | 7        | 0.7394818 |
-| United States Of America | promote       | 8        | 0.7198265 |
-| United States Of America | humanrights   | 9        | 0.7154944 |
-| United States Of America | democracy     | 10       | 0.7013341 |
-| United States Of America | promoting     | 11       | 0.6887101 |
-| United States Of America | order         | 12       | 0.6816403 |
-| United States Of America | building      | 13       | 0.6790501 |
-| United States Of America | ensuring      | 14       | 0.6768293 |
-| United States Of America | stability     | 15       | 0.6765675 |
+| **feature**   | **rank** | **value** |
+|:--------------|:---------|:----------|
+| ruleoflaw     | 1        | 0.8580669 |
+| institutions  | 2        | 0.7776769 |
+| governance    | 3        | 0.7363304 |
+| strengthen    | 4        | 0.7262979 |
+| strengthening | 5        | 0.7179879 |
+| respect       | 6        | 0.7093298 |
+| promote       | 7        | 0.6938324 |
+| essential     | 8        | 0.6928845 |
+| humanrights   | 9        | 0.6892298 |
+| build         | 10       | 0.6694275 |
 
 The following table displays the ratios of cosine similarities (Rodríguez, 2023). First, it computed the cosine similarities between the embeddings of "ruleoflaw" and the features for China's and the U.S.'s contexts. Then, it takes the ratio of cosine similarities for the two countries. This means that that the features with values larger than 1 are more associated with "ruleoflaw" in China's context compared to the U.S.'s context; features with values smaller than 1 are more associated with "ruleoflaw" in the U.S.'s context compared to China's context.
 
-|        | **feature**   | **value** |
+| rank   | **feature**   | **value** |
 |:-------|:--------------|:----------|
-| **1**  | stability     | 1.1709556 |
-| **2**  | development   | 1.1569086 |
-| **3**  | order         | 1.0676088 |
-| **4**  | essential     | 1.0210028 |
-| **5**  | promote       | 0.9971360 |
-| **6**  | strengthening | 0.9922026 |
-| **7**  | strengthen    | 0.9652008 |
-| **8**  | respect       | 0.9574996 |
-| **9**  | democracy     | 0.9442226 |
-| **10** | ruleoflaw     | 0.9363932 |
-| **11** | institutions  | 0.9191006 |
-| **12** | governance    | 0.8987647 |
-| **13** | humanrights   | 0.8458819 |
+| **1**  | economic      | 1.2485221 |
+| **2**  | development   | 1.2004488 |
+| **3**  | stability     | 1.1930074 |
+| **4**  | security      | 1.1005233 |
+| **5**  | efforts       | 1.0579386 |
+| **6**  | essential     | 1.0122458 |
+| **7**  | strengthening | 1.0024076 |
+| **8**  | promote       | 1.0019851 |
+| **9**  | respect       | 0.9504743 |
+| **10** | strengthen    | 0.9351184 |
+| **11** | ruleoflaw     | 0.9312333 |
+| **12** | democracy     | 0.9219601 |
+| **13** | institutions  | 0.9194518 |
+| **14** | build         | 0.8939435 |
+| **15** | governance    | 0.8632018 |
+| **16** | humanrights   | 0.8387187 |
 
 #### conText Embedding Regression Results
 
@@ -145,7 +133,7 @@ The following is the nearest neighbor features for the intercept embeddings of "
 The following is the regression outputs for China and the U.S.:
 
 | **country**                      | **normed_estimate** | **std_error** | **lower_ci** | **upper_ci** | **p_value** |
-|:---------------------------------|:--------------------|:--------------|:-------------|:-------------|:------------|
+|:-----------|:-----------|:-----------|:-----------|:-----------|:-----------|
 | country_China                    | 1.697853            | 0.1479866     | 1.407774     | 1.987932     | 0           |
 | country_United States Of America | 1.430671            | 0.1627434     | 1.111666     | 1.749675     | 0           |
 

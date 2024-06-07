@@ -4,52 +4,8 @@ setwd("/Users/jingyichen/Library/Mobile Documents/com~apple~CloudDocs/POLI 179/P
 #clear all previous objects.
 rm(list = ls())
 
-#---------------------------------
-# Merging and filtering dataset
-#---------------------------------
-#read in my datasets.
-load("docs_meta.RData")
-load("docs.RData")
-#load packages
-library(dplyr)
-library(stringr)
-#re-label the column "filename" as "doc_id".
-meta_speeches <- meta_speeches %>%
-  rename("doc_id" = "filename")
-
-#merge the text dataset and the metadata dataset.
-merged_ALLspeeches <- merge(raw_docs, meta_speeches, by = "doc_id")
-#make "rule of law" into one word
-merged_ALLspeeches$text <- gsub("\n", " ", merged_ALLspeeches$text, ignore.case = TRUE)
-merged_ALLspeeches$text <- gsub("  ", " ", merged_ALLspeeches$text, ignore.case = TRUE)
-merged_ALLspeeches$text <- gsub("rule of law", "ruleoflaw", merged_ALLspeeches$text, ignore.case = TRUE)
-merged_ALLspeeches$text <- gsub("rule-of-law", "ruleoflaw", merged_ALLspeeches$text, ignore.case = TRUE)
-merged_ALLspeeches$text <- gsub("rule oflaw", "ruleoflaw", merged_ALLspeeches$text, ignore.case = TRUE)
-merged_ALLspeeches$text <- gsub("ruleof law", "ruleoflaw", merged_ALLspeeches$text, ignore.case = TRUE)
-merged_ALLspeeches$text <- gsub("human rights", "humanrights", merged_ALLspeeches$text, ignore.case = TRUE)
-merged_ALLspeeches$text <- gsub("Security Council", "SecurityCouncil", merged_ALLspeeches$text, ignore.case = TRUE)
-merged_ALLspeeches$text <- gsub("United Nations", "UnitedNations", merged_ALLspeeches$text, ignore.case = TRUE)
-#create a new variable "contain_ruleoflaw" that takes the value of 1 when the speech mention ruleoflaw and 0 when it doesn't.
-merged_ALLspeeches <- merged_ALLspeeches %>%
-  mutate(contain_ruleoflaw = ifelse(grepl("ruleoflaw", text), 1, 0))
-#compute the proportion of speeches that mention "rule of law" each year.
-RofL_proportion_by_year <- merged_ALLspeeches %>% 
-  group_by(year) %>% 
-  summarize(mention_RofL_proportion = mean(contain_ruleoflaw))
-#draw a bar graph for proportions of speeches mentioning "rule of law" each year.
-library(ggplot2)
-# Create a bar graph
-ggplot(RofL_proportion_by_year, aes(x = factor(year), y = mention_RofL_proportion)) +
-  geom_bar(stat = "identity", fill = "darkgreen") +
-  labs(x = "Year", y = "Proportion of Speeches Mentioning 'rule of law'", title = "The Proportion of U.N. Security Council Speeches Mentioning 'rule of law' by Year") +
-  theme_minimal()  +
-  theme(plot.background = element_rect(fill = "lightgray", color = NA), # Changes the entire plot area background
-        panel.background = element_rect(fill = "white", color = NA))    # Changes the panel (where the bars are) background
-#filter the dataset to include only those texts that contain "ruleoflaw"
-filtered_ALLspeeches <- merged_ALLspeeches %>%
-  filter(str_detect(text, regex("ruleoflaw", ignore_case = TRUE)))
-saveRDS(filtered_ALLspeeches, file = "filtered_ALLspeeches.rds")
-
+#load the filtered dataset.
+filtered_ALLspeeches <- readRDS("filtered_ALLspeeches.rds")
 #---------------------------------
 # Text pre-processing
 #---------------------------------
@@ -104,7 +60,7 @@ RofL_dem_local_glove_ALL <- dem(x = ruleoflaw_dfm, pre_trained = local_glove_ALL
 RofL_wv_local_glove_ALL <- colMeans(RofL_dem_local_glove_ALL)
 
 # find nearest neighbors for overall ruleoflaw embedding
-nn_features_overall <- as.data.frame(nns(RofL_wv_local_glove_ALL, pre_trained = local_glove_ALL, N = 15, candidates = RofL_dem_local_glove_ALL@features, as_list = FALSE))
+nn_features_overall <- as.data.frame(nns(RofL_wv_local_glove_ALL, pre_trained = local_glove_ALL, N = 10, candidates = RofL_dem_local_glove_ALL@features, as_list = FALSE))
 
 
 #to get group-specific embeddings, average within country
@@ -114,7 +70,7 @@ dim(ruleoflaw_wv_country_local_ALL)
 
 #find nearest neighbors by country
 #if setting as_list = FALSE combines each group's results into a single tibble (useful for joint plotting)
-ruleoflaw_nns_local_ALL <- nns(ruleoflaw_wv_country_local_ALL, pre_trained = local_glove_ALL, N = 15, candidates = ruleoflaw_wv_country_local_ALL@features, as_list = TRUE)
+ruleoflaw_nns_local_ALL <- nns(ruleoflaw_wv_country_local_ALL, pre_trained = local_glove_ALL, N = 10, candidates = ruleoflaw_wv_country_local_ALL@features, as_list = TRUE)
 
 #check out results for countries
 nn_features_China <- as.data.frame(ruleoflaw_nns_local_ALL[["China"]])
@@ -127,8 +83,8 @@ cos_similarity_humanrights <- cos_sim(ruleoflaw_wv_country_local_ALL, pre_traine
   arrange(desc(value))
 
 #compute the cosine similarity between each country's embedding and a specific set of features
-nns_ratio_China_US <- as.data.frame(nns_ratio(x = ruleoflaw_wv_country_local_ALL[c("China", "United States Of America"), ], N = 10, numerator = "China", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE))
-nns_ratio(x = ruleoflaw_wv_country_local_ALL[c("China", "United States Of America"), ], N = 15, numerator = "United States Of America", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE)
+nns_ratio_China_US <- as.data.frame(nns_ratio(x = ruleoflaw_wv_country_local_ALL[c("China", "United States Of America"), ], N = 11, numerator = "China", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE))
+nns_ratio(x = ruleoflaw_wv_country_local_ALL[c("United States Of America", "China"), ], N = 11, numerator = "United States Of America", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE)
 
 #compute the cosine similarity between each country's embedding and a set of tokenized contexts
 ruleoflaw_ncs_local_ALL <- ncs(x = ruleoflaw_wv_country_local_ALL, contexts_dem = RofL_dem_local_glove_ALL, contexts = ruleoflaw_toks, N = 5, as_list = TRUE)
@@ -244,11 +200,12 @@ democracy_index_model <- conText(formula = "ruleoflaw" ~ Democracy.score,
                            window = 6, case_insensitive = TRUE,
                            verbose = FALSE)
 # look at percentiles of democracy index
-percentiles_dem_index <- quantile(docvars(corpus_merged_countries_dem_index)$Democracy.score, probs = seq(0.05,0.95,0.05))
+percentiles_dem_index <- quantile(docvars(corpus_merged_countries_dem_index)$Democracy.score, probs = seq(0.01,0.99,0.01))
 percentile_wvs_dem_index <- lapply(percentiles_dem_index, function(i) democracy_index_model["(Intercept)",] + i*democracy_index_model["Democracy.score",]) %>% do.call(rbind,.) 
 percentile_sim_dem_index <- cos_sim(x = percentile_wvs_dem_index, pre_trained = local_glove_ALL, features = c("support", "illegal", "stability", "humanrights", "justice", "security", "accountability"), as_list = TRUE)
 # nearest neighbors
-nearest_neighbors_dem_index <- nns(rbind(percentile_wvs_dem_index), N = 20, pre_trained = local_glove_ALL, candidates = democracy_index_model@features)
+nearest_neighbors_dem_index <- nns(rbind(percentile_wvs_dem_index), N = 15, pre_trained = local_glove_ALL, candidates = democracy_index_model@features)
+nns_ratio(x = percentile_wvs_dem_index[c("1%", "99%"), ], N = 14, numerator = "5%", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE)
 
 #non-binary covariates are automatically "dummified"
 rownames(democracy_index_model)
@@ -263,6 +220,8 @@ nns_regression_intercept <- as.data.frame(nns(rbind(intercept_wv), N = 15, pre_t
 China_wv <- democracy_index_model['(Intercept)',] + democracy_index_model['China',] #China
 # nearest neighbors
 nns_regression_China <- as.data.frame(nns(rbind(China_wv), N = 15, pre_trained = local_glove_ALL, candidates = all_countries_model@features))
+
+
 # Compute embeddings for countries 
 US_wv <- all_countries_model['(Intercept)',] + all_countries_model['country_United States Of America',]
 nns_regression_US <- as.data.frame(nns(rbind(US_wv), N = 15, pre_trained = local_glove_ALL, candidates = all_countries_model@features))
