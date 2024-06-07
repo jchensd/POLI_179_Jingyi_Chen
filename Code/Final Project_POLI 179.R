@@ -1,5 +1,5 @@
 #set my working directory
-setwd("/Users/jingyichen/Library/Mobile Documents/com~apple~CloudDocs/POLI 179/POLI 179_All Data")
+setwd("/Users/jingyichen/Library/Mobile Documents/com~apple~CloudDocs/POLI 179/POLI_179_Jingyi_Chen/Data & Models")
 
 #clear all previous objects.
 rm(list = ls())
@@ -83,39 +83,17 @@ ruleoflaw_toks <- tokens_context(x = toks_ALLspeeches, pattern = "ruleoflaw", wi
 #build document-feature matrix
 ruleoflaw_dfm <- dfm(ruleoflaw_toks)
 
-#---------------------------------
-# Estimate glove model
-#---------------------------------
+
 #load package
-library(text2vec)
 library(parallel)
 library(data.table)
 #construct the feature co-occurrence matrix for the toks_ALLspeeches object
 toks_fcm_ALLspeeches <- fcm(toks_ALLspeeches, context = "window", window = 6, count = "frequency", tri = FALSE) 
 
-#estimate glove model 
-glove_ALLSpeeches <- GlobalVectors$new(rank = 300, 
-                                       x_max = 50,
-                                       learning_rate = 0.05)
-wv_main_ALL <- glove_ALLSpeeches$fit_transform(toks_fcm_ALLspeeches, n_iter = 50,
-                                               convergence_tol = 1e-4, 
-                                               n_threads = parallel::detectCores(), shuffle_seed = 2024L) 
 
-wv_context_ALL <- glove_ALLSpeeches$components
-local_glove_ALL <- wv_main_ALL + t(wv_context_ALL) # word vectors
-#Save the trained glove embeddings to RDS
-saveRDS(local_glove_ALL, "local_glove_ALL.rds")
-
-# qualitative check
-find_nns(local_glove_ALL['ruleoflaw', ], pre_trained = local_glove_ALL, N = 5, candidates = features_ALLspeeches)
-
-# compute transform (A matrix)
-local_transform_ALL <- compute_transform(x = toks_fcm_ALLspeeches, pre_trained = local_glove_ALL, weighting = "log")
-saveRDS(local_transform_ALL, "local_transform_ALL.rds")
-#-----------------------------------------------
 #load the saved models
-#local_glove_ALL <- readRDS("local_glove_ALL.rds")
-#local_transform_ALL <- readRDS("local_transform_ALL.rds")
+local_glove_ALL <- readRDS("local_glove_ALL.rds")
+local_transform_ALL <- readRDS("local_transform_ALL.rds")
 
 
 #create document-embedding matrix using our locally trained GloVe embeddings and transformation matrix
@@ -128,9 +106,11 @@ RofL_wv_local_glove_ALL <- colMeans(RofL_dem_local_glove_ALL)
 # find nearest neighbors for overall ruleoflaw embedding
 nn_features_overall <- as.data.frame(nns(RofL_wv_local_glove_ALL, pre_trained = local_glove_ALL, N = 15, candidates = RofL_dem_local_glove_ALL@features, as_list = FALSE))
 
+
 #to get group-specific embeddings, average within country
 ruleoflaw_wv_country_local_ALL <- dem_group(RofL_dem_local_glove_ALL, groups = RofL_dem_local_glove_ALL@docvars$country)
 dim(ruleoflaw_wv_country_local_ALL)
+
 
 #find nearest neighbors by country
 #if setting as_list = FALSE combines each group's results into a single tibble (useful for joint plotting)
@@ -148,7 +128,7 @@ cos_similarity_humanrights <- cos_sim(ruleoflaw_wv_country_local_ALL, pre_traine
 
 #compute the cosine similarity between each country's embedding and a specific set of features
 nns_ratio_China_US <- as.data.frame(nns_ratio(x = ruleoflaw_wv_country_local_ALL[c("China", "United States Of America"), ], N = 10, numerator = "China", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE))
-nns_ratio(x = ruleoflaw_wv_country_local_ALL[c("China", "United States Of America"), ], N = 20, numerator = "United States Of America", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE)
+nns_ratio(x = ruleoflaw_wv_country_local_ALL[c("China", "United States Of America"), ], N = 15, numerator = "United States Of America", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE)
 
 #compute the cosine similarity between each country's embedding and a set of tokenized contexts
 ruleoflaw_ncs_local_ALL <- ncs(x = ruleoflaw_wv_country_local_ALL, contexts_dem = RofL_dem_local_glove_ALL, contexts = ruleoflaw_toks, N = 5, as_list = TRUE)
@@ -244,6 +224,7 @@ toks_merged_countries_dem_index <- tokens_tolower(toks_merged_countries_dem_inde
 #clean out stopwords and words with 2 or fewer characters
 toks_merged_countries_dem_index <- tokens_select(toks_merged_countries_dem_index, pattern = stopwords("en"), selection = "remove", min_nchar=3)
 toks_merged_countries_dem_index_stemmed <- tokens_wordstem(toks_merged_countries_dem_index)
+
 #only use features that appear at least 5 times in the corpus
 features_merged_countries_dem_index <- dfm(toks_merged_countries_dem_index, verbose = FALSE) %>% 
   dfm_trim(min_termfreq = 5) %>% featnames()
