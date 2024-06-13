@@ -83,8 +83,8 @@ cos_similarity_humanrights <- cos_sim(ruleoflaw_wv_country_local_ALL, pre_traine
   arrange(desc(value))
 
 #compute the cosine similarity between each country's embedding and a specific set of features
-nns_ratio_China_US <- as.data.frame(nns_ratio(x = ruleoflaw_wv_country_local_ALL[c("China", "United States Of America"), ], N = 11, numerator = "China", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE))
-nns_ratio(x = ruleoflaw_wv_country_local_ALL[c("United States Of America", "China"), ], N = 11, numerator = "United States Of America", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE)
+nns_ratio_China_US <- as.data.frame(nns_ratio(x = ruleoflaw_wv_country_local_ALL[c("China", "United States Of America"), ], N = 1000, numerator = "China", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE))
+nns_ratio(x = ruleoflaw_wv_country_local_ALL[c("United States Of America", "China"), ], N = 1000, numerator = "United States Of America", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE)
 
 #compute the cosine similarity between each country's embedding and a set of tokenized contexts
 ruleoflaw_ncs_local_ALL <- ncs(x = ruleoflaw_wv_country_local_ALL, contexts_dem = RofL_dem_local_glove_ALL, contexts = ruleoflaw_toks, N = 5, as_list = TRUE)
@@ -164,7 +164,7 @@ nns_regression_China <- as.data.frame(nns(rbind(China_wv), N = 15, pre_trained =
 US_wv <- all_countries_model['(Intercept)',] + all_countries_model['country_United States Of America',]
 nns_regression_US <- as.data.frame(nns(rbind(US_wv), N = 15, pre_trained = local_glove_ALL, candidates = all_countries_model@features))
 
-
+#load the data merging democracy indexs and U.N. Security Council speeches
 merged_countries_democracy_index <- readRDS("merged_countries_democracy_index.rds")
 #create a new variable "contain_ruleoflaw" that takes the value of 1 when the speech mention ruleoflaw and 0 when it doesn't.
 merged_countries_democracy_index <- merged_countries_democracy_index %>%
@@ -200,12 +200,12 @@ democracy_index_model <- conText(formula = "ruleoflaw" ~ Democracy.score,
                            window = 6, case_insensitive = TRUE,
                            verbose = FALSE)
 # look at percentiles of democracy index
-percentiles_dem_index <- quantile(docvars(corpus_merged_countries_dem_index)$Democracy.score, probs = seq(0.01,0.99,0.01))
+percentiles_dem_index <- quantile(docvars(corpus_merged_countries_dem_index)$Democracy.score, probs = seq(0.05,0.95,0.05))
 percentile_wvs_dem_index <- lapply(percentiles_dem_index, function(i) democracy_index_model["(Intercept)",] + i*democracy_index_model["Democracy.score",]) %>% do.call(rbind,.) 
 percentile_sim_dem_index <- cos_sim(x = percentile_wvs_dem_index, pre_trained = local_glove_ALL, features = c("support", "illegal", "stability", "humanrights", "justice", "security", "accountability"), as_list = TRUE)
 # nearest neighbors
 nearest_neighbors_dem_index <- nns(rbind(percentile_wvs_dem_index), N = 15, pre_trained = local_glove_ALL, candidates = democracy_index_model@features)
-nns_ratio(x = percentile_wvs_dem_index[c("1%", "99%"), ], N = 14, numerator = "5%", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE)
+nns_ratio(x = percentile_wvs_dem_index[c("95%", "5%"), ], N = 15, numerator = "95%", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE)
 
 #non-binary covariates are automatically "dummified"
 rownames(democracy_index_model)
