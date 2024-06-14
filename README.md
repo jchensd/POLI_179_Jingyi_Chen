@@ -28,7 +28,7 @@ Then, I converted the column of texts into a corpus and tokens. I also conducted
 
 #### 1. à la carte (ALC) Embedding
 
-I used the "conText" package developed by (Rodriguez et al., 2023) to conduct analysis in R. In order to examine the contextual meanings of "ruleoflaw" by analyzing words surrounding this term, I collected 6 words before and after every instance in which "ruleoflaw" was mentioned among the speeches as well as the metadata associated with the instance. A document feature matrix was built, where the rows were the total 16145 instances of "ruleoflaw".
+I used the "conText" package (Rodriguez, 2023) developed by Rodriguez et al. (2023) to conduct analysis in R. In order to examine the contextual meanings of "ruleoflaw" by analyzing words surrounding this term, I collected 6 words before and after every instance in which "ruleoflaw" was mentioned among the speeches as well as the metadata associated with the instance. A document feature matrix was built, where the rows were the total 16145 instances of "ruleoflaw".
 
 Then, I estimated GloVe embeddings from the 9441 U.N. Security Council speeches using the "text2vec" package. A transform matrix (Matrix A) was computed using the "compute-transform" function. It helps weight the common, uninformative words lower in the embeddings. The code for estimating the GloVe model is in [Train GloVe Embedding.R](https://github.com/jchensd/POLI_179_Jingyi_Chen/blob/abbe66304595172eb211b53c9c70a5780604150f/Code/Train%20GloVe%20Embedding.R)
 
@@ -44,7 +44,7 @@ After constructing the regression, I obtained the embeddings for countries at ev
 
 #### Nearest Neighbors Based on ALC Embedding
 
-Table 1 shows the nearest neighbors for the overall "ruleoflaw" embedding from the whole corpus (i.e. 9441 U.N. Security Council speeches that mentioned "ruleoflaw"). Overall, delegates of countries or organizations emphasized the importance of rule of law and linked it to democratic concepts and human rights.
+Table 1 shows the nearest neighbors for the overall "ruleoflaw" embedding from the whole corpus (i.e. 9441 U.N. Security Council speeches that mentioned "ruleoflaw"). Overall, countries, NGOs, and supranational organizations emphasized the importance of rule of law and linked it to democratic concepts and human rights.
 
 Tables 2 & 3 presents the nearest neighbor features for the specific contexts of China and the U.S., respectively. Table 4 displays the ratios of cosine similarities. The features with values larger than 1 are more associated with "ruleoflaw" in China's context compared to the U.S.'s context; vise versa, features with values smaller than 1 are more associated with "ruleoflaw" in the U.S.'s context compared to China's context. The interpretation is that the U.S. tends to understand rule of law as protection of individuals' rights during international crises and the institutions and governance in the international decision-making process. In contrast, China tends to link it to stability, security, and economic development.
 
