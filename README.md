@@ -4,48 +4,51 @@
 
 ![]()Jingyi Chen (A17519136)
 
-### Introduction
+### Overview
 
-In this project, I applied the à la carte (ALC) Embedding (Khodak et al., 2018) and the conText Embedding Regression (Rodriguez et al., 2023) to compare the contextual meanings of "rule of law" in the United Nations Security Council debates across different countries. The "conText" package developed by Rodriguez et al. (2023) was used to conduct analysis in R.
+Rule of law is a fundamental concept in international conflicts, collaborations, and state governance. The mentioning of rule of law in the U.N. Security Council had increase in the last two decades. While it was not frequently brought up during the debates, with about 10 percents of speeches that mentioned it among all speeches per year in the past 20 years (Figure 1), the manner in which countries discuss this concept can provide implications about their values and goals on the international stage. In this project, by applying the à la carte (ALC) Embedding (Khodak et al., 2018) and the conText Embedding Regression (Rodriguez et al., 2023) to compare the contextual meanings of "rule of law" in the United Nations Security Council debates between the U.S. and China and across countries with different democracy scores (Economist Intelligence Unit, 2010), I tried to understand whether there were distinctions in how countries viewed this concept. The code for main analyses is in... See References for the links to the data used in this project.
 
 ### Data
 
 #### Overview
 
-The main data analyzed in this project is the United Nations Security Council debates from Harvard Dataverse (Schoenfeld et al., 2019). The filtered data include 8435 speeches that mentioned "rule of law" from April 1995 to November 2020 and their document IDs, as well as the covariates like country, speaker, date, and topic.
+The main data analyzed in this project is the United Nations Security Council debates (Schoenfeld et al., 2019). The filtered data include 9441 speeches that mentioned "rule of law" from January 1995 to December 2020 and their document IDs, as well as the metadata including country, speaker, and date.
 
 #### Data Preprocessing
 
-<<<<<<< HEAD
-The original dataset from Schoenfeld et al. (2019) consists of two files: "docs_meta.RData" and "docs.RData", which were merged using the shared document IDs. Because the primary objective of this project is to examine how the phrase "rule of law" is used by different countries in their U.N. Security Council speeches, it was made into one term, i.e. "ruleoflaw", which is the targeted/focal term in the analysis. Also, because I am also interested in whether some countries are more likely to associated "human rights" with "ruleoflaw", the former phrase is also made into one term, i.e. "humanrights". The whole dataset of speeches were filtered into only those that mentioned "ruleoflaw". In the meantime, I also compute the proportion of speeches that mentioned "ruleoflaw" among all speeches in a given year year and the below histogram illustrates the results. I conducted the operations described in this paragraph in [data_filtering.R](https://github.com/jchensd/POLI_179_Jingyi_Chen/blob/ef70e7bbbf63fb10eb63cd0dd412302890c8fce7/Code/data_filtering.R).
+I conducted the following preprocessings in [data_filtering.R](https://github.com/jchensd/POLI_179_Jingyi_Chen/blob/ef70e7bbbf63fb10eb63cd0dd412302890c8fce7/Code/data_filtering.R).
 
-![Image 1: Proportions of U.N. Security Council Speeches Mentioning 'rule of law' by Year](https://github.com/jchensd/POLI_179_Jingyi_Chen/assets/169096479/2e72ba6c-7540-4a3a-b6a6-af5afb57365f)
+I merged the separate files of the original data package using the shared document IDs. Because the primary objective of this project is to examine how the phrase "rule of law", or the targeted/focal term, is used by different countries, it was made into one term, i.e. "ruleoflaw". Also, because I am also interested in whether some countries are more likely to link "human rights" to "ruleoflaw", the former phrase is also made into one term, i.e. "humanrights". "United Nations" and "Security Council" were also made into single terms. The whole dataset of speeches were filtered into only those that mentioned "ruleoflaw".
 
 Then, I converted the column of texts into a corpus and tokens. I also conducted common text pre-processing using the "quanteda" package, including removing punctuation, symbols, numbers, separators, English stopwords, words with 2 or fewer characters and words appearing less than 5 times in the corpus (I used "padding=TRUE" to leave an empty string where the removed tokens previously existed), and converting words to lower case.
+
+![Figure 1: Proportions of U.N. Security Council Speeches Mentioning 'Rule of Law' by Year](https://github.com/jchensd/POLI_179_Jingyi_Chen/assets/169096479/2e72ba6c-7540-4a3a-b6a6-af5afb57365f)
 
 ### Methods
 
 #### 1. à la carte (ALC) Embedding
 
-In order to examine the contextual meanings of "ruleoflaw" by analyzing the words surrounding this targeted term, I collected 6 words before and after every instance in which "ruleoflaw" was mentioned among the speeches as well as the metadata associated with the instance. A document feature matrix was built, where thr rows (documents) consist of 6 words before and after 13837 instances of "ruleoflaw".
+I used the "conText" package developed by (Rodriguez et al., 2023) to conduct analysis in R. In order to examine the contextual meanings of "ruleoflaw" by analyzing words surrounding this term, I collected 6 words before and after every instance in which "ruleoflaw" was mentioned among the speeches as well as the metadata associated with the instance. A document feature matrix was built, where the rows were the total 16145 instances of "ruleoflaw".
 
-Then, I estimated GloVe embeddings from the 8435 filtered U.N. Security Council speeches using the "text2vec" package. A transform matrix (Matrix A) was computed using the "compute_transform" function in the "conText" package. The transform matrix helps weight the common, uninformative words lower in the embeddings.
+Then, I estimated GloVe embeddings from the 9441 U.N. Security Council speeches using the "text2vec" package. A transform matrix (Matrix A) was computed using the "compute-transform" function. It helps weight the common, uninformative words lower in the embeddings. The code for estimating the GloVe model is in...
 
-The ALC embeddings method estimates the embeddings of the targeted word in a specific context by taking the average of the embeddings of words surrounding this word (e.g. 6 words before and after the targeted word) (Khodak et al., 2018). I obtained the embeddings of the words surrounding the 13837 instances of "ruleoflaw" from the GloVe model estimated previously and applied the transform matrix to construct a document-embedding matrix which contains the embeddings of words surrounding every instance of "ruleoflaw". Then, I took the column average of these embeddings to get the context-specific embeddings for "ruleoflaw".
-
-With the locally trained GloVe embeddings, I found nearest neighbor words for the context-specific "ruleoflaw" embeddings. I also computed cosine similarities between each country's embedding and a specific set of features and found words that distinguish two countries the most.
+The ALC embedding method estimates the embedding of the targeted word in a specific context by taking the average of the embeddings of words surrounding this word (e.g. 6 words before and after the targeted word) (Khodak et al., 2018). I obtained the embeddings of the words surrounding the 16145 instances of "ruleoflaw" from the GloVe model estimated previously and applied the transform matrix to construct a document-embedding matrix which contains the embeddings. Then, I took the column average of these embeddings to get the context-specific embedding for "ruleoflaw". With the GloVe embedding model, I found nearest neighbor features for country-specific "ruleoflaw" embeddings. I also computed cosine similarities between China and U.S.'s "ruleoflaw" embeddings and available features in the corpus to find words that distinguish two countries the most. To obtain the ratios, it first computed the cosine similarities between the embeddings of "ruleoflaw" and available features in the corpus for China and the U.S. Then, it takes the ratio of cosine similarities between the two countries for each features.
 
 #### 2. conText Embedding Regression
 
-Using the conText regression model in the "conText" package, I regressed the embeddings of "ruleoflaw" over country. Before doing so, I removed the speeches by NGOs from the dataset and only included the 7103 speeches by countries (primarily because the full dataset was so big that the computer could not compute the regression). In this case, since there are multiple countries in the country variable, the model made them into dummy variables. This means that, for example, the variable "country_China" takes the value of 1 when the instance of "ruleoflaw" is from a speech by China and takes the value of 0 otherwise.
+Using the conText regression model, I regressed the embedding of "ruleoflaw" over the 2010 Democracy Index. Before doing so, I merged the U.N. Security Council dataset with the 2010 Democracy Index data. Speeches by NGOs, supranational unions, and a few countries for which Democracy Index data were unavailable were removed from the dataset. There are 7879 speeches by countries left. The code for data preprocessing and merging is in...
 
-After constructing the regression, I obtained the embeddings for each country estimated by the regression and found nearest neighbor features.
+After constructing the regression, I obtained the embeddings for countries at every 5th percentile of democracy index that were estimated by the regression and found nearest neighbor features. I mainly compared countries at 5th and 95th percentiles of democracy index by computing ratios of cosine similarities.
 
 ### Results
 
-#### Nearest Neighbors Based on ALC Embeddings
+#### Nearest Neighbors Based on ALC Embedding
 
-The following is the nearest neighbors for the overall "ruleoflaw" embeddings from the whole corpus (i.e. 8435 U.N. Security Council speeches that mentioned "ruleoflaw"):
+Table 1 shows the nearest neighbors for the overall "ruleoflaw" embedding from the whole corpus (i.e. 9441 U.N. Security Council speeches that mentioned "ruleoflaw"). Overall, delegates of countries or organizations emphasized the importance of rule of law and linked it to democratic concepts and human rights.
+
+Tables 2 & 3 presents the nearest neighbor features for the specific contexts of China and the U.S., respectively. Table 4 displays the ratios of cosine similarities. The features with values larger than 1 are more associated with "ruleoflaw" in China's context compared to the U.S.'s context; vise versa, features with values smaller than 1 are more associated with "ruleoflaw" in the U.S.'s context compared to China's context. The interpretation is that the U.S. tends to understand rule of law as protection of individuals' rights during international crises and the institutions and governance in the international decision-making process. In contrast, China tends to link it to stability, security, and economic development.
+
+**Table 1**:
 
 | **feature**   | **rank** | **value** |
 |:--------------|:---------|:----------|
@@ -60,7 +63,7 @@ The following is the nearest neighbors for the overall "ruleoflaw" embeddings fr
 | ensuring      | 9        | 0.7127769 |
 | promoting     | 10       | 0.7118825 |
 
-The nearest neighbor features for the specific context of China and the U.S.:
+**Table 2**:
 
 | **feature**   | **rank** | **value** |
 |:--------------|:---------|:----------|
@@ -75,6 +78,8 @@ The nearest neighbor features for the specific context of China and the U.S.:
 | efforts       | 9        | 0.6810040 |
 | strengthen    | 10       | 0.6791745 |
 
+**Table 3**:
+
 | **feature**   | **rank** | **value** |
 |:--------------|:---------|:----------|
 | ruleoflaw     | 1        | 0.8580669 |
@@ -88,7 +93,7 @@ The nearest neighbor features for the specific context of China and the U.S.:
 | humanrights   | 9        | 0.6892298 |
 | build         | 10       | 0.6694275 |
 
-The following table displays the ratios of cosine similarities (Rodríguez, 2023). First, it computed the cosine similarities between the embeddings of "ruleoflaw" and the features for China's and the U.S.'s contexts. Then, it takes the ratio of cosine similarities for the two countries. This means that that the features with values larger than 1 are more associated with "ruleoflaw" in China's context compared to the U.S.'s context; features with values smaller than 1 are more associated with "ruleoflaw" in the U.S.'s context compared to China's context.
+**Table 4**:
 
 | rank   | **feature**   | **value** |
 |:-------|:--------------|:----------|
@@ -111,104 +116,42 @@ The following table displays the ratios of cosine similarities (Rodríguez, 2023
 
 #### conText Embedding Regression Results
 
-The following is the nearest neighbor features for the intercept embeddings of "ruleoflaw" as estimated by the regression:
+The regression model outputs a p-value of 0 and lower and higher confidence intervals of 0.06375997 and 0.07463132, indicating the repression result is significant. Based on the nearest neighbor features (not presented here due to page limitation) for embedding of "ruleoflaw" for countries at every 5th percentile, as estimated by the regression, even countries at 95th percentile and 5th percentile have similar top nearest neighbors like "strengthening" and "respect", indicating their shared acknowledgement of the importance of rule of law. However, when taking the ratios of cosine similarities, the results show that countries at 5th percentile tend to link the phrase to "stability" (ratio: 0.9238250) and "democracy" (0.9656132, not as significant as "stability"), while those at 95th percentile tend to emphasize its importance and associate it with human rights (1.0519852) and justice (1.0468595). Table 5 displays the ratios of cosine similarities between countries at 95th percentile and 5th percentile of democracy index.
 
-| **intercept_wv.feature** | **intercept_wv.rank** | **intercept_wv.value** |
-|:-------------------------|:----------------------|:-----------------------|
-| governance               | 1                     | 0.8575313              |
-| ruleoflaw                | 2                     | 0.7724213              |
-| strengthening            | 3                     | 0.7292756              |
-| democracy                | 4                     | 0.7177035              |
-| promoting                | 5                     | 0.7071556              |
-| humanrights              | 6                     | 0.7011513              |
-| respect                  | 7                     | 0.6573512              |
-| rights                   | 8                     | 0.6560221              |
-| institutions             | 9                     | 0.6546322              |
-| fundamental              | 10                    | 0.6543437              |
-| promotion                | 11                    | 0.6488464              |
-| ensuring                 | 12                    | 0.6443824              |
-| development              | 13                    | 0.6414632              |
-| essential                | 14                    | 0.6331904              |
-| good                     | 15                    | 0.6321306              |
+Considering that China typically connects rule of law to stability, I removed all speeches by China from the dataset and ran the regression again. Still, "stability" has the lowest cosine similarity ratio (0.9450454), suggesting that linking rule of law to stability is a common observation for countries with low democracy scores, not uniquely for China, though it is a very typical example.
 
-The following is the regression outputs for China and the U.S.:
+**Table 5**:
 
-| **country**                      | **normed_estimate** | **std_error** | **lower_ci** | **upper_ci** | **p_value** |
-|:-----------|:-----------|:-----------|:-----------|:-----------|:-----------|
-| country_China                    | 1.697853            | 0.1479866     | 1.407774     | 1.987932     | 0           |
-| country_United States Of America | 1.430671            | 0.1627434     | 1.111666     | 1.749675     | 0           |
-
-The following is the nearest neighbor features for the embeddings of "ruleoflaw" in China's context as estimated by the regression:
-
-| **China_wv.feature** | **China_wv.rank** | **China_wv.value** |
-|:---------------------|:------------------|:-------------------|
-| ruleoflaw            | 1                 | 0.8320788          |
-| stability            | 2                 | 0.7915291          |
-| strengthening        | 3                 | 0.7722771          |
-| essential            | 4                 | 0.7558402          |
-| development          | 5                 | 0.7470143          |
-| institutions         | 6                 | 0.7401886          |
-| strengthen           | 7                 | 0.7289622          |
-| order                | 8                 | 0.7268133          |
-| promote              | 9                 | 0.7171448          |
-| respect              | 10                | 0.7078517          |
-| promoting            | 11                | 0.7022481          |
-| efforts              | 12                | 0.6973016          |
-| believe              | 13                | 0.6886376          |
-| economic             | 14                | 0.6861399          |
-| reconciliation       | 15                | 0.6813317          |
-
-The following is the nearest neighbor features for the embeddings of "ruleoflaw" in the U.S.'s context as estimated by the regression:
-
-| **US_wv.feature** | **US_wv.rank** | **US_wv.value** |
-|:------------------|:---------------|:----------------|
-| ruleoflaw         | 1              | 0.8883046       |
-| institutions      | 2              | 0.8054595       |
-| strengthening     | 3              | 0.7776455       |
-| governance        | 4              | 0.7571846       |
-| strengthen        | 5              | 0.7552568       |
-| essential         | 6              | 0.7400785       |
-| respect           | 7              | 0.7391297       |
-| promote           | 8              | 0.7200812       |
-| humanrights       | 9              | 0.7151871       |
-| democracy         | 10             | 0.7014251       |
-| promoting         | 11             | 0.6889003       |
-| order             | 12             | 0.6814194       |
-| building          | 13             | 0.6788800       |
-| stability         | 14             | 0.6768726       |
-| ensuring          | 15             | 0.6766737       |
-
-The following table displays the ratios of cosine similarities based on embeddings estimated by the regression. As stated in the previous section, it means that that the features with values larger than 1 are more associated with "ruleoflaw" in China's context compared to the U.S.'s context; features with values smaller than 1 are more associated with "ruleoflaw" in the U.S.'s context compared to China's context. It is very similar the results based on the ALC embeddings in the previous section with slightly different values.
-
-|        | **feature**   | **value** |
+| rank   | **feature**   | **value** |
 |:-------|:--------------|:----------|
-| **1**  | stability     | 1.1693916 |
-| **2**  | development   | 1.1564117 |
-| **3**  | order         | 1.0666166 |
-| **4**  | essential     | 1.0212973 |
-| **5**  | promote       | 0.9959222 |
-| **6**  | strengthening | 0.9930966 |
-| **7**  | strengthen    | 0.9651846 |
-| **8**  | respect       | 0.9576827 |
-| **9**  | democracy     | 0.9439583 |
-| **10** | ruleoflaw     | 0.9367043 |
-| **11** | institutions  | 0.9189645 |
-| **12** | governance    | 0.8988757 |
-| **13** | humanrights   | 0.8456848 |
-
-work in progress: I am working on regressing embeddings over some continuous variables such as the GDP per capita of countries.
+| **1**  | crucial       | 1.0769875 |
+| **2**  | regard        | 1.0715406 |
+| **3**  | essential     | 1.0524188 |
+| **4**  | humanrights   | 1.0519852 |
+| **5**  | justice       | 1.0468595 |
+| **6**  | ensuring      | 1.0364412 |
+| **7**  | ruleoflaw     | 1.0223068 |
+| **8**  | fundamental   | 1.0195719 |
+| **9**  | strengthen    | 1.0158669 |
+| **10** | strengthening | 1.0152380 |
+| **11** | institutions  | 1.0081698 |
+| **12** | respect       | 1.0041441 |
+| **13** | promotion     | 0.9917010 |
+| **14** | governance    | 0.9786736 |
+| **15** | promoting     | 0.9721091 |
+| **16** | democracy     | 0.9656132 |
+| **17** | promote       | 0.9601427 |
+| **18** | stability     | 0.9238250 |
 
 ### Discussions
 
-under construction...
+Based on the results from ALC embedding and conText Regression, this study found that, in the scenario of U.N. Security Council debates, countries like China and the U.S. showed different understandings of rule of law. The U.S. presents a traditional Western liberal-democratic interpretation of rule of law, while China possibly considers it as a pragmatic means to broader socioeconomic and political goals. Also, states with lower democracy scores tend to link rule of law to stability, which might suggest maintaining stability holds high importance for non-democratic countries.
 
-regression:
-
-key global event - before and after a certain date/year
-
-democracy index - <https://ourworldindata.org/grapher/democracy-index-eiu?tab=table#explore-the-data>
+One limitation of this study is the lack of understanding of why the countries associate rule of law with distinct words in the broader context of international politics. In the future, it would be helpful to integrate background insights about state policies and international relations to better understand what the findings suggest about countries' different perspectives regarding rule of law, and how this could help explain international conflicts and collaborations.
 
 ### References
+
+Economist Intelligence Unit. (2010). Democracy Index [Data set]. Our World in Date. <https://ourworldindata.org/grapher/democracy-index-eiu>
 
 Khodak, M., Saunshi, N., Liang, Y., Ma, T., Stewart, B., & Arora, S. (2018). A la carte embedding: Cheap but effective induction of semantic feature vectors. *arXiv preprint arXiv:1805.05388*.
 

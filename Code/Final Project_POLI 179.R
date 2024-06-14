@@ -83,7 +83,7 @@ cos_similarity_humanrights <- cos_sim(ruleoflaw_wv_country_local_ALL, pre_traine
   arrange(desc(value))
 
 #compute the cosine similarity between each country's embedding and a specific set of features
-nns_ratio_China_US <- as.data.frame(nns_ratio(x = ruleoflaw_wv_country_local_ALL[c("China", "United States Of America"), ], N = 1000, numerator = "China", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE))
+nns_ratio_China_US <- as.data.frame(nns_ratio(x = ruleoflaw_wv_country_local_ALL[c("China", "United States Of America"), ], N = 11, numerator = "China", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE))
 nns_ratio(x = ruleoflaw_wv_country_local_ALL[c("United States Of America", "China"), ], N = 1000, numerator = "United States Of America", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE)
 
 #compute the cosine similarity between each country's embedding and a set of tokenized contexts
@@ -118,57 +118,15 @@ for (tokens in ruleoflaw_ncs_local_ALL[["China"]]$context){
 # conText Embedding Regression
 #---------------------------------
 set.seed(2024L)
-merged_countries <- readRDS("merged_countries.rds")
-
-#Text pre-processing------------------------------------------------------------
-#-------------------------------------------------------------------------------
-#create a corpus of texts.
-corpus_merged_countries <- corpus(merged_countries, text_field = "text")
-
-#tokenize corpus removing unnecessary (i.e. semantically uninformative) elements
-toks_merged_countries <- tokens(corpus_merged_countries, remove_punct=T, remove_symbols=T, remove_numbers=T, remove_separators=T)
-toks_merged_countries <- tokens_tolower(toks_merged_countries)
-#clean out stopwords and words with 2 or fewer characters
-toks_merged_countries <- tokens_select(toks_merged_countries, pattern = stopwords("en"), selection = "remove", min_nchar=3)
-#only use features that appear at least 5 times in the corpus
-features_merged_countries <- dfm(toks_merged_countries, verbose = FALSE) %>% 
-  dfm_trim(min_termfreq = 5) %>% featnames()
-
-
-# leave the pads so that non-adjacent words will not become adjacent
-toks_merged_countries_features <- tokens_select(toks_merged_countries, features_merged_countries, padding = TRUE)
-#regress 
-all_countries_model <- conText(formula = "ruleoflaw" ~ country,
-                               data = toks_merged_countries_features,
-                               pre_trained = local_glove_ALL,
-                               transform = TRUE, transform_matrix = local_transform_ALL,
-                               jackknife = TRUE, confidence_level = 0.95,
-                               permute = TRUE, num_permutations = 100,
-                               window = 6, case_insensitive = TRUE,
-                               verbose = FALSE)
-
-#non-binary covariates are automatically "dummified"
-rownames(all_countries_model)
-regression_info_all_countries <- data.frame(country = all_countries_model@normed_coefficients[["coefficient"]], normed_estimate = all_countries_model@normed_coefficients[["normed.estimate"]], std_error = all_countries_model@normed_coefficients[["std.error"]], lower_ci = all_countries_model@normed_coefficients[["lower.ci"]], upper_ci = all_countries_model@normed_coefficients[["upper.ci"]], p_value = all_countries_model@normed_coefficients[["p.value"]])
-regression_info_China <- as.data.frame(regression_info_all_countries[regression_info_all_countries$country == "country_China", ])
-regression_info_US <- as.data.frame(regression_info_all_countries[regression_info_all_countries$country == "country_United States Of America", ])
-# D-dimensional beta coefficients
-# the intercept in this case is the ALC embedding for?
-# beta coefficients can be combined to get each group's ALC embedding
-intercept_wv <- all_countries_model['(Intercept)',] 
-nns_regression_intercept <- as.data.frame(nns(rbind(intercept_wv), N = 15, pre_trained = local_glove_ALL, candidates = all_countries_model@features))
-China_wv <- all_countries_model['(Intercept)',] + all_countries_model['country_China',] #China
-# nearest neighbors
-nns_regression_China <- as.data.frame(nns(rbind(China_wv), N = 15, pre_trained = local_glove_ALL, candidates = all_countries_model@features))
-# Compute embeddings for countries 
-US_wv <- all_countries_model['(Intercept)',] + all_countries_model['country_United States Of America',]
-nns_regression_US <- as.data.frame(nns(rbind(US_wv), N = 15, pre_trained = local_glove_ALL, candidates = all_countries_model@features))
 
 #load the data merging democracy indexs and U.N. Security Council speeches
 merged_countries_democracy_index <- readRDS("merged_countries_democracy_index.rds")
+
 #create a new variable "contain_ruleoflaw" that takes the value of 1 when the speech mention ruleoflaw and 0 when it doesn't.
 merged_countries_democracy_index <- merged_countries_democracy_index %>%
   mutate(China = ifelse(grepl("China", country), 1, 0))
+#merged_countries_democracy_index <- merged_countries_democracy_index %>% 
+#  filter(China == 0)
 #Text pre-processing------------------------------------------------------------
 #-------------------------------------------------------------------------------
 #create a corpus of texts.
@@ -177,6 +135,7 @@ corpus_merged_countries_dem_index <- corpus(merged_countries_democracy_index, te
 #tokenize corpus removing unnecessary (i.e. semantically uninformative) elements
 toks_merged_countries_dem_index <- tokens(corpus_merged_countries_dem_index, remove_punct=T, remove_symbols=T, remove_numbers=T, remove_separators=T)
 toks_merged_countries_dem_index <- tokens_tolower(toks_merged_countries_dem_index)
+
 #clean out stopwords and words with 2 or fewer characters
 toks_merged_countries_dem_index <- tokens_select(toks_merged_countries_dem_index, pattern = stopwords("en"), selection = "remove", min_nchar=3)
 toks_merged_countries_dem_index_stemmed <- tokens_wordstem(toks_merged_countries_dem_index)
@@ -199,87 +158,11 @@ democracy_index_model <- conText(formula = "ruleoflaw" ~ Democracy.score,
                            permute = TRUE, num_permutations = 100,
                            window = 6, case_insensitive = TRUE,
                            verbose = FALSE)
+
 # look at percentiles of democracy index
 percentiles_dem_index <- quantile(docvars(corpus_merged_countries_dem_index)$Democracy.score, probs = seq(0.05,0.95,0.05))
 percentile_wvs_dem_index <- lapply(percentiles_dem_index, function(i) democracy_index_model["(Intercept)",] + i*democracy_index_model["Democracy.score",]) %>% do.call(rbind,.) 
 percentile_sim_dem_index <- cos_sim(x = percentile_wvs_dem_index, pre_trained = local_glove_ALL, features = c("support", "illegal", "stability", "humanrights", "justice", "security", "accountability"), as_list = TRUE)
 # nearest neighbors
 nearest_neighbors_dem_index <- nns(rbind(percentile_wvs_dem_index), N = 15, pre_trained = local_glove_ALL, candidates = democracy_index_model@features)
-nns_ratio(x = percentile_wvs_dem_index[c("95%", "5%"), ], N = 15, numerator = "95%", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE)
-
-#non-binary covariates are automatically "dummified"
-rownames(democracy_index_model)
-regression_info_democracy_index_model <- data.frame(country = democracy_index_model@normed_coefficients[["coefficient"]], normed_estimate = democracy_index_model@normed_coefficients[["normed.estimate"]], std_error = democracy_index_model@normed_coefficients[["std.error"]], lower_ci = democracy_index_model@normed_coefficients[["lower.ci"]], upper_ci = democracy_index_model@normed_coefficients[["upper.ci"]], p_value = democracy_index_model@normed_coefficients[["p.value"]])
-regression_info_China <- as.data.frame(regression_info_democracy_index_model[regression_info_democracy_index_model$country == "country_China", ])
-regression_info_US <- as.data.frame(regression_info_all_countries[regression_info_all_countries$country == "country_United States Of America", ])
-# D-dimensional beta coefficients
-# the intercept in this case is the ALC embedding for?
-# beta coefficients can be combined to get each group's ALC embedding
-intercept_wv <- democracy_index_model['(Intercept)',] 
-nns_regression_intercept <- as.data.frame(nns(rbind(intercept_wv), N = 15, pre_trained = local_glove_ALL, candidates = democracy_index_model@features))
-China_wv <- democracy_index_model['(Intercept)',] + democracy_index_model['China',] #China
-# nearest neighbors
-nns_regression_China <- as.data.frame(nns(rbind(China_wv), N = 15, pre_trained = local_glove_ALL, candidates = all_countries_model@features))
-
-
-# Compute embeddings for countries 
-US_wv <- all_countries_model['(Intercept)',] + all_countries_model['country_United States Of America',]
-nns_regression_US <- as.data.frame(nns(rbind(US_wv), N = 15, pre_trained = local_glove_ALL, candidates = all_countries_model@features))
-
-
-#I am still exploring the following...
-#STM 
-library(stm)
-#convert the trimmed dfm into the format that can be used to run the STM model.
-dfm_merged_countries_dem_index <- convert(dfm_merged_countries_dem_index, to = "stm")
-#run the STM model.
-model.stm_RofL <- stm(dfm_merged_countries_dem_index$documents, dfm_merged_countries_dem_index$vocab, K = 10, prevalence = ~ s(year) + country + s(Democracy.score),
-                    data = dfm_merged_countries_dem_index$meta)
-#Find most likely words in each topic
-labelTopics(model.stm_RofL)
-#Estimate relationship between democracy score and topics
-model.stm.ee_RofL <- estimateEffect(1:10 ~ s(year) + country, model.stm_RofL, meta = dfm_merged_countries_dem_index$meta)
-
-plot(model.stm.ee_RofL, "country", method="difference", cov.value1="United States Of America", cov.value2="Russian Federation")
-plot(model.stm.ee_RofL, "Democracy.score", method="continuous", topics=c(10))
-
-#---------cos similarity-----------
-# Compute cosine similarity between China and the United States embeddings
-cosine_similarity <- function(vec1, vec2) {
-  sum(vec1 * vec2) / (sqrt(sum(vec1^2)) * sqrt(sum(vec2^2)))
-}
-
-china_us_similarity <- cosine_similarity(China_wv, US_wv)
-
-# Identify features with most significant differences
-# Calculate the differences in embeddings
-embedding_diff <- China_wv - US_wv
-nns(rbind(embedding_diff), N = 15, pre_trained = local_glove_ALL, candidates = all_countries_model@features)
-# Find the top N features with the largest differences
-top_diff_features <- names(sort(nns(embedding_diff), decreasing = TRUE)[1:10])
-#create a sparse matrix for estimated embeddings for China and the U.S. and compute the ratio of cosine similarities
-library(Matrix)
-matrix_China_US_wv <- sparseMatrix(i = rep(1:2, each=300), 
-             j = rep(1:300, times=2), 
-             x = c(China_wv, US_wv))
-nns_ratio_regression_China_US <- as.data.frame(nns_ratio(x = matrix_China_US_wv, N = 10, candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE))
-
-# Display top differences
-print(top_diff_features)
-
-#regress the embeddings over GDP per capita
-GDPpercap_model <- conText(formula = "ruleoflaw" ~ GDP_PerCap,
-                              data = toks_merged_countries_features,
-                              pre_trained = local_glove_ALL,
-                              transform = TRUE, transform_matrix = local_transform_ALL,
-                              jackknife = TRUE, confidence_level = 0.95,
-                              permute = TRUE, num_permutations = 100,
-                              window = 6, case_insensitive = TRUE,
-                              verbose = FALSE)
-# look at percentiles of GDPpercap
-percentiles_GDPpercap <- quantile(docvars(corpus_merged_countries)$GDP_PerCap, probs = seq(0.05,0.95,0.05))
-percentile_wvs_GDPpercap <- lapply(percentiles_GDPpercap, function(i) GDPpercap_model["(Intercept)",] + i*GDPpercap_model["GDP_PerCap",]) %>% do.call(rbind,.)
-percentile_sim_GDPpercap <- cos_sim(x = percentile_wvs_GDPpercap, pre_trained = local_glove_ALL, features = c("support", "illegal", "stability", "humanrights", "justice", "security", "accountability"), as_list = TRUE)
-# nearest neighbors
-nearest_neighbors_gdpPerCap <- nns(rbind(percentile_wvs_GDPpercap), N = 15, pre_trained = local_glove_ALL, candidates = GDPpercap_model@features)
-
+nns_ratio_democracy_index <- nns_ratio(x = percentile_wvs_dem_index[c("95%", "5%"), ], N = 15, numerator = "95%", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE)
