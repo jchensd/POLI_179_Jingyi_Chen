@@ -8,11 +8,15 @@
 
 Rule of law is a fundamental concept in international conflicts, collaborations, and state governance. The mentioning of rule of law in the U.N. Security Council had increase in the last two decades. While it was not frequently brought up during the debates, with about 10 percents of speeches that mentioned it among all speeches per year in the past 20 years (Figure 1), the manner in which countries discuss this concept can provide implications about their values and goals on the international stage. In this project, by applying the à la carte (ALC) Embedding (Khodak et al., 2018) and the conText Embedding Regression (Rodriguez et al., 2023) to compare the contextual meanings of "rule of law" in the United Nations Security Council debates between the U.S. and China and across countries with different democracy scores (Economist Intelligence Unit, 2010), I tried to understand whether there were distinctions in how countries viewed this concept. The code for main analyses is in [Final Project_POLI 179.R](https://github.com/jchensd/POLI_179_Jingyi_Chen/blob/d0fc39ebfb176129d403e680eb5abf07f65502fd/Code/Final%20Project_POLI%20179.R). See References for the links to the data used in this project.
 
+![Figure 1: Proportions of U.N. Security Council Speeches Mentioning 'Rule of Law' by Year](https://github.com/jchensd/POLI_179_Jingyi_Chen/assets/169096479/2e72ba6c-7540-4a3a-b6a6-af5afb57365f)
+
 ### Data
 
 #### Overview
 
 The main data analyzed in this project is the United Nations Security Council debates (Schoenfeld et al., 2019). The filtered data include 9441 speeches that mentioned "rule of law" from January 1995 to December 2020 and their document IDs, as well as the metadata including country, speaker, and date.
+
+The Democracy Index is a value indicating a country's level of democracy, ranging with 0 to 10 (Economist Intelligence Unit, 2010). I used democracy index data in 2010 to analyze the difference in the meaning of rule of law among countries with higher and lower democracy scores.
 
 #### Data Preprocessing
 
@@ -21,8 +25,6 @@ I conducted the following preprocessings in [data_filtering.R](https://github.co
 I merged the separate files of the original data package using the shared document IDs. Because the primary objective of this project is to examine how the phrase "rule of law", or the targeted/focal term, is used by different countries, it was made into one term, i.e. "ruleoflaw". Also, because I am also interested in whether some countries are more likely to link "human rights" to "ruleoflaw", the former phrase is also made into one term, i.e. "humanrights". "United Nations" and "Security Council" were also made into single terms. The whole dataset of speeches were filtered into only those that mentioned "ruleoflaw".
 
 Then, I converted the column of texts into a corpus and tokens. I also conducted common text pre-processing using the "quanteda" package, including removing punctuation, symbols, numbers, separators, English stopwords, words with 2 or fewer characters and words appearing less than 5 times in the corpus (I used "padding=TRUE" to leave an empty string where the removed tokens previously existed), and converting words to lower case.
-
-![Figure 1: Proportions of U.N. Security Council Speeches Mentioning 'Rule of Law' by Year](https://github.com/jchensd/POLI_179_Jingyi_Chen/assets/169096479/2e72ba6c-7540-4a3a-b6a6-af5afb57365f)
 
 ### Methods
 
