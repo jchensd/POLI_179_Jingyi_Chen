@@ -48,4 +48,7 @@ ggplot(RofL_proportion_by_year, aes(x = factor(year), y = mention_RofL_proportio
 #filter the dataset to include only those texts that contain "ruleoflaw"
 filtered_ALLspeeches <- merged_ALLspeeches %>%
   filter(str_detect(text, regex("ruleoflaw", ignore_case = TRUE)))
+US_China_UNSC_speeches <- filtered_ALLspeeches %>% 
+  filter(country == "China" | country == "United States Of America")
+saveRDS(US_China_UNSC_speeches, file = "US_China_UNSC_speeches.rds")
 saveRDS(filtered_ALLspeeches, file = "filtered_ALLspeeches.rds")

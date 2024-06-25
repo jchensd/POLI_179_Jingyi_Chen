@@ -2,7 +2,7 @@
 setwd("/Users/jingyichen/Library/Mobile Documents/com~apple~CloudDocs/POLI 179/POLI_179_Jingyi_Chen/Data & Models")
 
 #clear all previous objects.
-rm(list = ls())
+#rm(list = ls())
 
 #load the filtered dataset.
 filtered_ALLspeeches <- readRDS("filtered_ALLspeeches.rds")
@@ -49,7 +49,10 @@ toks_fcm_ALLspeeches <- fcm(toks_ALLspeeches, context = "window", window = 6, co
 
 #load the saved models
 local_glove_ALL <- readRDS("local_glove_ALL.rds")
-local_transform_ALL <- readRDS("local_transform_ALL.rds")
+#local_transform_ALL <- readRDS("local_transform_ALL.rds")
+local_glove_ALL <- zh_embeddings
+#compute the transform matrix (A Matrix)
+local_transform_ALL <- compute_transform(x = toks_fcm_ALLspeeches, pre_trained = local_glove_ALL, weighting = "log")
 
 
 #create document-embedding matrix using our locally trained GloVe embeddings and transformation matrix
@@ -84,7 +87,7 @@ cos_similarity_humanrights <- cos_sim(ruleoflaw_wv_country_local_ALL, pre_traine
 
 #compute the cosine similarity between each country's embedding and a specific set of features
 nns_ratio_China_US <- as.data.frame(nns_ratio(x = ruleoflaw_wv_country_local_ALL[c("China", "United States Of America"), ], N = 11, numerator = "China", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE))
-nns_ratio(x = ruleoflaw_wv_country_local_ALL[c("United States Of America", "China"), ], N = 1000, numerator = "United States Of America", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE)
+nns_ratio(x = ruleoflaw_wv_country_local_ALL[c("United States Of America", "China"), ], N = 20, numerator = "United States Of America", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE)
 
 #compute the cosine similarity between each country's embedding and a set of tokenized contexts
 ruleoflaw_ncs_local_ALL <- ncs(x = ruleoflaw_wv_country_local_ALL, contexts_dem = RofL_dem_local_glove_ALL, contexts = ruleoflaw_toks, N = 5, as_list = TRUE)
