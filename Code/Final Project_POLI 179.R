@@ -49,10 +49,10 @@ toks_fcm_ALLspeeches <- fcm(toks_ALLspeeches, context = "window", window = 6, co
 
 #load the saved models
 local_glove_ALL <- readRDS("local_glove_ALL.rds")
-#local_transform_ALL <- readRDS("local_transform_ALL.rds")
-local_glove_ALL <- zh_embeddings
+local_transform_ALL <- readRDS("local_transform_ALL.rds")
+
 #compute the transform matrix (A Matrix)
-local_transform_ALL <- compute_transform(x = toks_fcm_ALLspeeches, pre_trained = local_glove_ALL, weighting = "log")
+#local_transform_ALL <- compute_transform(x = toks_fcm_ALLspeeches, pre_trained = local_glove_ALL, weighting = "log")
 
 
 #create document-embedding matrix using our locally trained GloVe embeddings and transformation matrix
