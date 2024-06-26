@@ -34,7 +34,7 @@ features_ALLspeeches <- dfm(toks_ALLspeeches, verbose = FALSE) %>%
 #leave the pads so that non-adjacent words will not become adjacent
 toks_ALLspeeches <- tokens_select(toks_ALLspeeches, features_ALLspeeches, padding = TRUE)
 #build a tokenized corpus of contexts surrounding the target term "ruleoflaw"
-ruleoflaw_toks <- tokens_context(x = toks_ALLspeeches, pattern = "ruleoflaw", window = 6L)
+ruleoflaw_toks <- tokens_context(x = toks_ALLspeeches, pattern = "ruleoflaw", window = 5L)
 
 #build document-feature matrix
 ruleoflaw_dfm <- dfm(ruleoflaw_toks)
@@ -73,7 +73,7 @@ dim(ruleoflaw_wv_country_local_ALL)
 
 #find nearest neighbors by country
 #if setting as_list = FALSE combines each group's results into a single tibble (useful for joint plotting)
-ruleoflaw_nns_local_ALL <- nns(ruleoflaw_wv_country_local_ALL, pre_trained = local_glove_ALL, N = 10, candidates = ruleoflaw_wv_country_local_ALL@features, as_list = TRUE)
+ruleoflaw_nns_local_ALL <- nns(ruleoflaw_wv_country_local_ALL, pre_trained = local_glove_ALL, N = 20, candidates = ruleoflaw_wv_country_local_ALL@features, as_list = TRUE)
 
 #check out results for countries
 nn_features_China <- as.data.frame(ruleoflaw_nns_local_ALL[["China"]])
@@ -86,8 +86,8 @@ cos_similarity_humanrights <- cos_sim(ruleoflaw_wv_country_local_ALL, pre_traine
   arrange(desc(value))
 
 #compute the cosine similarity between each country's embedding and a specific set of features
-nns_ratio_China_US <- as.data.frame(nns_ratio(x = ruleoflaw_wv_country_local_ALL[c("China", "United States Of America"), ], N = 11, numerator = "China", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE))
-nns_ratio(x = ruleoflaw_wv_country_local_ALL[c("United States Of America", "China"), ], N = 20, numerator = "United States Of America", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE)
+nns_ratio_China_US <- as.data.frame(nns_ratio(x = ruleoflaw_wv_country_local_ALL[c("China", "United States Of America"), ], N = 1000, numerator = "China", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE))
+nns_ratio(x = ruleoflaw_wv_country_local_ALL[c("United States Of America", "China"), ], N = 1000, numerator = "United States Of America", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE)
 
 #compute the cosine similarity between each country's embedding and a set of tokenized contexts
 ruleoflaw_ncs_local_ALL <- ncs(x = ruleoflaw_wv_country_local_ALL, contexts_dem = RofL_dem_local_glove_ALL, contexts = ruleoflaw_toks, N = 5, as_list = TRUE)
@@ -114,9 +114,11 @@ for (tokens in ruleoflaw_ncs_local_ALL[["China"]]$context){
   print(filtered_ALLspeeches$text[filtered_ALLspeeches$doc_id == doc_id_context])
 }
 
-
-
-
+#obtaining individual texts
+filtered_ALLspeeches$doc_id[filtered_ALLspeeches$country == "China"]
+filtered_ALLspeeches$text[filtered_ALLspeeches$doc_id == "UNSC_2018_SPV.8207_spch010.txt"]
+#Caution: There are "ruleoflaw" in institutions' names
+#e.g. European Union ruleoflaw Mission in Kosovo
 #---------------------------------
 # conText Embedding Regression
 #---------------------------------
@@ -168,4 +170,4 @@ percentile_wvs_dem_index <- lapply(percentiles_dem_index, function(i) democracy_
 percentile_sim_dem_index <- cos_sim(x = percentile_wvs_dem_index, pre_trained = local_glove_ALL, features = c("support", "illegal", "stability", "humanrights", "justice", "security", "accountability"), as_list = TRUE)
 # nearest neighbors
 nearest_neighbors_dem_index <- nns(rbind(percentile_wvs_dem_index), N = 15, pre_trained = local_glove_ALL, candidates = democracy_index_model@features)
-nns_ratio_democracy_index <- nns_ratio(x = percentile_wvs_dem_index[c("95%", "5%"), ], N = 15, numerator = "95%", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE)
+nns_ratio_democracy_index <- nns_ratio(x = percentile_wvs_dem_index[c("95%", "5%"), ], N = 100, numerator = "95%", candidates = ruleoflaw_wv_country_local_ALL@features, pre_trained = local_glove_ALL, verbose = FALSE)
