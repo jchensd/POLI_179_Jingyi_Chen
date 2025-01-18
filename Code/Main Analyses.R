@@ -3,7 +3,7 @@
 
 #It further analyzes the correlation between the Democracy Index and the framing of the rule of law among all countries in the UNSC.
 
-#I would like to express my gratitude to Rodriguez (2023) for providing a comprehensive guide on implementing ALC Embedding and conText Regression using the "conText" package. 
+#I would like to express my gratitude to Rodriguez (2023) for providing a useful guide on implementing ALC Embedding and conText Regression using the "conText" package. 
 #The guide is available on GitHub at: <https://github.com/prodriguezsosa/conText/blob/c373ea228ecdbe05597080e19b570f373c628c03/vignettes/quickstart.md>.
 
 #set my working directory
