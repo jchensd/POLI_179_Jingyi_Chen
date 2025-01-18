@@ -2,13 +2,13 @@
 
 ### Group
 
-![]()Jingyi Chen (A17519136)
+![]()Jingyi Chen (jic090\@ucsd.edu)
 
 ### Overview
 
 The rule of law is a fundamental concept in democratic state governance and international legal systems. In the United Nations Security Council (UNSC), where countries deliberate on global conflicts and collaborations, how countries frame this concept on the international stage can provide critical insights into their values and political objectives. How do the conceptualizations of the rule of law differ between China and Western countries such as the United States? To address this question, this project applied advanced computational text analysis methods of the à la carte (ALC) Embedding (Khodak et al., 2018) and the conText Regression (Rodriguez et al., 2023) to compare the contextual meanings of the rule of law in the UNSC debates between the United States and China and across countries with different democracy indices (Economist Intelligence Unit, 2010).
 
-I conducted data merging and cleaning in UNSC Data Pre-Processing.R and Democracy Index Data Pre-Processing and Merging with UNSC Data.R. The code for my main analyses is in [Main Analyses.R](https://github.com/jchensd/POLI_179_Jingyi_Chen/blob/ae2c759c32c500f228e7d9bb5a1b15427f83dca4/Code/Main%20Analyses.R). See References for the links to the data used in this project.
+I conducted data merging and cleaning in [UNSC Data Pre-Processing.R](https://github.com/jchensd/POLI_179_Jingyi_Chen/blob/c9364474798a389fe38eec6f550556d666f3a6fb/Code/UNSC%20Data%20Pre-Processing.R) and [Democracy Index Data Pre-Processing and Merging with UNSC Data.R](https://github.com/jchensd/POLI_179_Jingyi_Chen/blob/c9364474798a389fe38eec6f550556d666f3a6fb/Code/Democracy%20Index%20Data%20Pre-Processing%20and%20Merging%20with%20UNSC%20Data.R). The code for my main analyses is in [Main Analyses.R](https://github.com/jchensd/POLI_179_Jingyi_Chen/blob/c9364474798a389fe38eec6f550556d666f3a6fb/Code/Main%20Analyses.R). See References for the links to the data used in this project.
 
 The results suggest that the U.S. tends to understand the rule of law based on Western legal traditions emphasizing universal principles of justice, democracy, and human rights. In contrast, China links it to economic and social aspects, emphasizing development and stability. Showing a more pragmatic interpretation of the rule of law, China considers it as the means to create a stable and orderly social and political environment, both domestically and internationally; It focuses on the functional benefits of the rule of law, such as improving governance efficiency and promoting economic growth, instead of prioritizing individual rights and democratic values. Moreover, countries with low democracy indices tend to associate the rule of law with stability, which might suggest that the preservation of stability holds high importance for non-democratic regimes.
 
@@ -179,4 +179,4 @@ Changes Made: The datasets were merged, cleaned, and filtered. Specific phrases 
 
 Attribution: Economist Intelligence Unit (2010) (See References)
 
-Changes Made: The country names are changed to ensure correct merging with The UN Security Council Debates dataset.
+Changes Made: The country names were reformatted to ensure correct merging with The UN Security Council Debates dataset.
