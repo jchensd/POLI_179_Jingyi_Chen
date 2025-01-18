@@ -38,6 +38,9 @@ Then, I estimated GloVe embeddings from the 9441 U.N. Security Council speeches 
 
 The ALC embedding method estimates the embedding of the targeted word in a specific context by taking the average of the embeddings of words surrounding this word (e.g. 6 words before and after the targeted word) (Khodak et al., 2018). I obtained the embeddings of the words surrounding the 16145 instances of "ruleoflaw" from the GloVe model estimated previously and applied the transform matrix to construct a document-embedding matrix that contains the embeddings. Then, I took the column average of these embeddings to get the context-specific embedding for "ruleoflaw". With the GloVe embedding model, I found nearest neighbor features for country-specific "ruleoflaw" embeddings. I also computed cosine similarities between China and U.S.'s "ruleoflaw" embeddings and available features in the corpus to find words that distinguish the two countries the most. To obtain the ratios, it first computed the cosine similarities between the embeddings of "ruleoflaw" and available features in the corpus for China and the U.S. Then, it takes the ratio of cosine similarities between the two countries for each feature.
 
+I would like to appreciate Rodriguez (2023) for providing a helpful guide on implementing ALC Embedding and conText Regression using the "conText" package. 
+The guide is available on GitHub at: <https://github.com/prodriguezsosa/conText/blob/c373ea228ecdbe05597080e19b570f373c628c03/vignettes/quickstart.md>.
+
 #### 2. conText Embedding Regression
 
 Using the conText regression model, I regressed the embedding of "ruleoflaw" over the 2010 Democracy Index. Before doing so, I merged the U.N. Security Council dataset with the 2010 Democracy Index data. Speeches by NGOs, supranational unions, and a few countries for which Democracy Index data were unavailable were removed from the dataset. There are 7879 speeches by countries left.
