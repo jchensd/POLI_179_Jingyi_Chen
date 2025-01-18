@@ -1,10 +1,9 @@
 
-#This code conducts analyses comparing China's and the US framings of the rule of law in the United Nations Security Council (UNSC).
+#This code performs ALC Embedding and conText Regression analyses to:
 
-#It further analyzes the correlation between the Democracy Index and the framing of the rule of law among all countries in the UNSC.
+#1. compare how China and the United States conceptualize the rule of law in the United Nations Security Council (UNSC).
 
-#I would like to express my gratitude to Rodriguez (2023) for providing a useful guide on implementing ALC Embedding and conText Regression using the "conText" package. 
-#The guide is available on GitHub at: <https://github.com/prodriguezsosa/conText/blob/c373ea228ecdbe05597080e19b570f373c628c03/vignettes/quickstart.md>.
+#2. assess the correlation between the Democracy Index and the interpretation and framing of the rule of law across all countries in the UNSC.
 
 #set my working directory
 setwd("~/Library/Mobile Documents/com~apple~CloudDocs/Past Courses/POLI 179/POLI_179_Jingyi_Chen/Data & Models")
